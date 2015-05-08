@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 2.8)
 set (CMAKE_TOOLCHAIN_FILE cmake/Arduino-MiniPro.cmake)
 
 set (CMAKE_CROSSCOMPILING 1)
+set (CMAKE_BUILD_TYPE Release)
 
 project (LEDBlink C CXX ASM)
 
