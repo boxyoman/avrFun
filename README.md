@@ -21,7 +21,7 @@ After setting that variable you should be able to run these commands:
   git submodule update --init
   mkdir build
   cd build
-  cmake ..
+  cmake -DCMAKE_BUILD_TYPE=Release ..
   make
   make upload
 ```
