@@ -93,7 +93,6 @@ public:
     }
   }
 
-  //write a different value for each pin
   template<typename... H>
   static void write(H... h){
     static_assert(sizeof...(h) == sizeof...(pins)+1, "Mismatch");
