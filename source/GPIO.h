@@ -1,22 +1,25 @@
 #pragma once
+
 #include "templateList.h"
 #include "Register.h"
 
 namespace Arduino{
 
+//Most of the stuff in this namespace should get put into another file specific 
+//to the arduino bbeing used
 namespace {
-
 //Get AVR information based on Arduino pin number
 template<uint8_t pin>
 struct Port{
   static_assert(pin <= 13, "Not a valid pin");
   
-  //AVR port
+  //AVR port addresses
   enum class PortX : uint8_t{
     B = 0x25,
     D = 0x2b,
   };
 
+  //AVR DDR addresses
   enum class DDRx : uint8_t{
     B = 0x24,
     D = 0x2a,
@@ -65,9 +68,11 @@ class GPIO {
     static constexpr auto mask = uint8_t(Port<first>::mask);
   };
 
-  //generate the write value for the write to multiple pins
+  //generate the write value to write to multiple pins
   template<typename inPins, typename... t>
   static uint8_t getWriteValue(uint8_t first, t... values) {
+    //need to build an assert system
+    //assert(first == 1 | first == 0, "Inputs can only be 1 or 0");
     return first<<Port<inPins::Value>::bit 
       | getWriteValue<typename inPins::Next>(values...);
   };
@@ -93,9 +98,12 @@ public:
     }
   }
 
+  //write a different value for every pin
+  //Please only write 1 or 0. Bad things will happen if you don't.
   template<typename... H>
   static void write(H... h){
-    static_assert(sizeof...(h) == sizeof...(pins)+1, "Mismatch");
+    static_assert(sizeof...(h) == sizeof...(pins)+1, 
+        "You need the same number of write values and pins");
     uint8_t mask = maskGen<pinOne, pins...>::mask;
     uint8_t value = getWriteValue<pinList>(h...);
     uint8_t currentValue = portx::read();
@@ -108,6 +116,8 @@ public:
     uint8_t currentValue = portx::read();
     portx::wwrite(mask | currentValue);
   }
+
+  //TODO: set input, reading the inputs
 };
 
 //specialized GPIO for only 1 GPIO
