@@ -1,3 +1,5 @@
+#pragma once
+#include "templateList.h"
 #include "Register.h"
 
 namespace Arduino{
@@ -27,6 +29,7 @@ struct Port{
 
 };
 
+
 //used to make sure the pins are in the same ports
 template<int first, int... others>
 struct PortChecker{
@@ -45,6 +48,7 @@ struct PortChecker<first>{
 
 }//End of Anonymous
 
+
 template<int pinOne, int... pins>
 class GPIO {
   static_assert(PortChecker<pinOne, pins...>::check(), 
@@ -61,9 +65,21 @@ class GPIO {
     static constexpr auto mask = uint8_t(Port<first>::mask);
   };
 
+  //generate the write value for the write to multiple pins
+  template<typename inPins, typename... t>
+  static uint8_t getWriteValue(uint8_t first, t... values) {
+    return first<<Port<inPins::Value>::bit 
+      | getWriteValue<typename inPins::Next>(values...);
+  };
+  template<typename inPins>
+  static uint8_t getWriteValue(){
+    return 0;
+  }
+
   using port = Port<pinOne>;
   using portx = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::port),
         0, 8>;
+  using pinList = typename makeList<pinOne, pins...>::Value;
 
 public:
   //writes value to all pins
@@ -76,6 +92,17 @@ public:
       portx::wwrite(mask | currentValue);
     }
   }
+
+  //write a different value for each pin
+  template<typename... H>
+  static void write(H... h){
+    static_assert(sizeof...(h) == sizeof...(pins)+1, "Mismatch");
+    uint8_t mask = maskGen<pinOne, pins...>::mask;
+    uint8_t value = getWriteValue<pinList>(h...);
+    uint8_t currentValue = portx::read();
+    portx::wwrite((~mask & currentValue) | value);
+  }
+
   //set all to output
   static void setOutput(){
     uint8_t mask = maskGen<pinOne, pins...>::mask;
