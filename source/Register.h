@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <limits>
 #include "Device.h"
+#include "templateList.h"
 
 namespace LowLevel{
 
@@ -77,26 +78,129 @@ public:
   
   //Called when writing has both read and write access
   static void rwrite(int value){
+    static_assert(mut_t != Access::ro, 
+        "Trying to write to a readonly register");
     reg_t device = reinterpret_cast<reg_t>(addr);
     *device = (*device & ~mask) | ((value << offset) & mask);
   }
 
   //Called when writing has only write access
   static void wwrite(int value){
+    static_assert(mut_t != Access::ro, 
+        "Trying to write to a readonly register");
     reg_t device = reinterpret_cast<reg_t>(addr);
     *device = (value & mask) << offset;
   }
 
-  template<typename ...bits>
+  //a class for direct simultaneous bit manipulations
+  template<int ...bits>
   class Bit{
     static_assert(width == std::numeric_limits<T>::digits, 
         "Width must be width of register when using Bit");
-    static void writeAll(Bit value){
 
+    //Generates Mask for reading 
+    template<int pos1, int... others>
+    struct maskGen{
+      static constexpr T mask = 1<<pos1 | maskGen<others...>::mask;
+    };
+    template<int pos>
+    struct maskGen<pos>{
+      static constexpr T mask = 1<<pos;
+    };
+
+    //generate the write value to write to multiple pins
+    //inBit should be a List of the bits
+    template<typename inBit, typename h, typename... t>
+    static uint8_t getWriteValue(h first, t... values) {
+      return (1&first)<<inBit::Value 
+        | getWriteValue<typename inBit::Next>(values...);
+    };
+    template<typename inPins>
+    static uint8_t getWriteValue(){
+      return 0;
     }
-  };
+
+    //assign values to the references from a read
+    template<typename inPins,typename H, typename... t>
+    static void assignRead(uint8_t value, H& head, t&... others){
+      uint8_t bit = inPins::Value;
+      head = (value>>bit) & 1;
+      assignRead<typename inPins::Next>(value, others...);
+    }
+    template<typename inPins>
+    static void assignRead(uint8_t value){
+      return;
+    }
+
+    //A list of the bits
+    using bitList = typename Meta::makeList<bits...>::Value;
+
+  public:
+    //Mask used to show what bits are being used in the register
+    static constexpr T mask = maskGen<bits...>::mask;
+
+    //write the same value to every bit
+    static void writeAll(T value){
+      static_assert(mut_t != Access::ro, 
+          "Trying to write to a readonly register");
+      value &= 1;
+      T currentValue = (mut_t != Access::ro) ? read() : 0;
+      if(value == 1){
+        Register::wwrite(mask | currentValue);
+      }else{
+        Register::wwrite(~mask & currentValue);
+      }
+    }
+
+    //write different values to the bits
+    template<typename... H>
+    static void write(H... values){
+      static_assert(sizeof...(values) == sizeof...(bits), 
+          "You need the same number of write values and bits");
+      static_assert(mut_t != Access::ro, 
+          "Trying to write to a readonly register");
+      if(mut_t == Access::wo){
+        Bit::wwrite(values...);
+      }else{
+        Bit::rwrite(values...);
+      }
+    }
+    
+    //write different values to the bits
+    template<typename... H>
+    static void rwrite(H... values){
+      static_assert(sizeof...(values) == sizeof...(bits), 
+          "You need the same number of write values and bits");
+      static_assert(mut_t != Access::ro, 
+          "Trying to write to a readonly register");
+      T value = getWriteValue<bitList>(values...);
+      T currentValue = (mut_t != Access::ro) ? Register::read() : 0;
+      Register::wwrite((~mask & currentValue) | value);
+    }
+
+    //write different values to the bits overriding all bits
+    template<typename... H>
+    static void wwrite(H... values){
+      static_assert(sizeof...(values) == sizeof...(bits), 
+          "You need the same number of write values and bits");
+      static_assert(mut_t != Access::ro, 
+          "Trying to write to a readonly register");
+      T value = getWriteValue<bitList>(values...);
+      Register::wwrite(value);
+    }
+    
+    template<typename... H>
+    static void read(H&... var){
+      static_assert(sizeof...(var) == sizeof...(bits), 
+          "You need the same number of references and pins");
+      static_assert(mut_t != Access::wo, 
+          "Trying to read from a write only register.");
+      uint8_t value = Register::read();   
+      assignRead<bitList>(value, var...);
+    }
+
+  }; //End of class Bit<bits...>
 }; //End of class Register<mux_t, addr, offset, width, T>
 
 
 }//End of namespace Register
-
