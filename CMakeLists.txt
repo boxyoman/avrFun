@@ -10,7 +10,7 @@ unset (CMAKE_C_FLAGS)
 unset (CMAKE_CXX_FLAGS)
 
 set (CMAKE_C_FLAGS   "-mmcu=atmega328p -nostdlib")
-set (CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -x c++ -std=c++11 -I${CMAKE_SOURCE_DIR}/include")
+set (CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -x c++ -std=c++14 -I${CMAKE_SOURCE_DIR}/include")
 
 #set (CMAKE_EXE_LINKER_FLAGS "-T ${CMAKE_SOURCE_DIR}/kernel.ld -Map ${CMAKE_BINARY_DIR}/kernel.map")
 

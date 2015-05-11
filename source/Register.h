@@ -1,4 +1,3 @@
-
 /*******************************************************************/
 /*
  * The idea for this was stolen from: 
@@ -31,6 +30,7 @@
 
 #include <stdint.h>
 #include <limits>
+#include "Device.h"
 
 namespace LowLevel{
 
@@ -41,34 +41,33 @@ enum class Access {
 };
 
 template<Access mut_t, 
-  uint8_t addr, 
+  unsigned int addr, 
   int offset, 
   int width, 
-  typename t = uint8_t>
+  typename T = Device::Word>
 class Register {
-  using reg_t = volatile t*;
-  static constexpr reg_t device = reinterpret_cast<reg_t>(addr);
-  static const int deviceWidth = std::numeric_limits<t>::digits;
+  using reg_t = volatile T*;
+  static const int deviceWidth = std::numeric_limits<T>::digits;
   static constexpr uint8_t generate_mask(){
     return (width>=deviceWidth)? ~0 : ((1 << width) - 1) << offset;
   }
-  static constexpr t mask = generate_mask();
+  static constexpr T mask = generate_mask();
 public:
 
-  static_assert(!std::numeric_limits<t>::is_signed, "Needs to be unsigned");
-  static_assert(std::numeric_limits<t>::is_integer, "Not an integer");
+  static_assert(!std::numeric_limits<T>::is_signed, "Needs to be unsigned");
+  static_assert(std::numeric_limits<T>::is_integer, "Not an integer");
   static_assert(width > 0, "Not a positive width");
   static_assert(offset >= 0, "Negative offset");
-  static_assert(width + offset <= std::numeric_limits<t>::digits, 
+  static_assert(width + offset <= std::numeric_limits<T>::digits, 
       "width overflow");
 
-  static uint8_t read(){
+  static T read(){
     static_assert(mut_t != Access::wo, "Write only register");
-    return (*reinterpret_cast<reg_t>(addr) & generate_mask()) 
-            >> offset;
+    reg_t device = reinterpret_cast<reg_t>(addr);
+    return (*device & mask) >> offset;
   }
 
-  static void write(uint8_t val){
+  static void write(T val){
     static_assert(mut_t != Access::ro, "Read only register");
     if(mut_t == Access::rw)
       rwrite(val);
@@ -78,16 +77,26 @@ public:
   
   //Called when writing has both read and write access
   static void rwrite(int value){
+    reg_t device = reinterpret_cast<reg_t>(addr);
     *device = (*device & ~mask) | ((value << offset) & mask);
   }
 
   //Called when writing has only write access
   static void wwrite(int value){
+    reg_t device = reinterpret_cast<reg_t>(addr);
     *device = (value & mask) << offset;
   }
-private:
 
-}; //End of class Register
+  template<typename ...bits>
+  class Bit{
+    static_assert(width == std::numeric_limits<T>::digits, 
+        "Width must be width of register when using Bit");
+    static void writeAll(Bit value){
+
+    }
+  };
+}; //End of class Register<mux_t, addr, offset, width, T>
+
 
 }//End of namespace Register
 

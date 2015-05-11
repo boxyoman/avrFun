@@ -2,6 +2,7 @@
 
 #include "templateList.h"
 #include "Register.h"
+#include "Bit.h"
 
 namespace Arduino{
 
@@ -70,7 +71,7 @@ class GPIO {
 
   //generate the write value to write to multiple pins
   template<typename inPins, typename... t>
-  static uint8_t getWriteValue(uint8_t first, t... values) {
+  static uint8_t getWriteValue(LowLevel::Bit first, t... values) {
     //need to build an assert system
     //assert(first == 1 | first == 0, "Inputs can only be 1 or 0");
     return first<<Port<inPins::Value>::bit 
@@ -81,14 +82,28 @@ class GPIO {
     return 0;
   }
 
+  //assign values to the references from a read
+  template<typename inPins,typename H, typename... T>
+  static void assignRead(uint8_t value, H& head, T&... others){
+    uint8_t bit = Port<inPins::Value>::bit;
+    head = (value>>bit) & 1;
+    assignRead<typename inPins::Next>(value, others...);
+  }
+  template<typename inPins>
+  static void assignRead(uint8_t value){
+    return;
+  }
+
   using port = Port<pinOne>;
   using portx = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::port),
         0, 8>;
-  using pinList = typename makeList<pinOne, pins...>::Value;
+  using ddrx = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::ddr),
+        0, 8>;
+  using pinList = typename Meta::makeList<pinOne, pins...>::Value;
 
 public:
   //writes value to all pins
-  static void write(uint8_t value){
+  static void writeAll(LowLevel::Bit value){
     uint8_t mask = maskGen<pinOne, pins...>::mask;
     uint8_t currentValue = portx::read();
     if(value == 0){
@@ -111,10 +126,36 @@ public:
   }
 
   //set all to output
-  static void setOutput(){
+  static void setAllOutput(){
     uint8_t mask = maskGen<pinOne, pins...>::mask;
     uint8_t currentValue = portx::read();
-    portx::wwrite(mask | currentValue);
+    ddrx::wwrite(mask | currentValue);
+  }
+
+  //set all to either an input or output
+  //1 is an output
+  //0 is an input
+  template<typename... T>
+  static void setType(T... values){
+    static_assert(sizeof...(values) == sizeof...(pins)+1, 
+        "You need the same number of write values and pins");
+    uint8_t mask = maskGen<pinOne, pins...>::mask;
+    uint8_t value = getWriteValue<pinList>(values...);
+    uint8_t currentValue = ddrx::read();
+    ddrx::wwrite((~mask & currentValue) | value);
+  }
+
+  //set all to input
+  static void setAllInput(){
+    uint8_t mask = maskGen<pinOne, pins...>::mask;
+    uint8_t currentValue = portx::read();
+    ddrx::wwrite(~mask & currentValue);
+  }
+  
+  template<typename... T>
+  static void read(T&... var){
+    uint8_t value = portx::read();   
+    assignRead<pinList>(value, var...);
   }
 
   //TODO: set input, reading the inputs

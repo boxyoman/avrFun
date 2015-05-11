@@ -1,5 +1,7 @@
 #pragma once
 
+namespace Meta{
+
 struct NIL{
   static const int Value = 0;
   using Next = NIL;
@@ -20,3 +22,5 @@ template<int h>
 struct makeList<h>{
   using Value = List<h, NIL>;
 };
+
+}
