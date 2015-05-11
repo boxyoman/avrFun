@@ -8,44 +8,22 @@ namespace Arduino{
 //Most of the stuff in this namespace should get put into another file specific 
 //to the arduino bbeing used
 namespace {
-//Get AVR information based on Arduino pin number
 template<uint8_t pin>
-struct Port{
-  static_assert(pin <= 13, "Not a valid pin");
-  
-  //AVR port addresses
-  enum class PortX : uint8_t{
-    B = 0x25,
-    D = 0x2b,
-  };
-
-  //AVR DDR addresses
-  enum class DDRx : uint8_t{
-    B = 0x24,
-    D = 0x2a,
-  };
-
-  static const auto port = (pin < 7)? PortX::D : PortX::B;
-  static const auto mask = (pin < 7)? uint8_t(1<<pin) : 1<<(pin-8);
-  static const auto bit  = (pin < 7)? pin : pin-8;
-  static const auto ddr  = (pin < 7)? DDRx::D : DDRx::B;
-
-};
-
-
+using digitalPin = Pin<PinTypes::Digital, pin>;
+//Get AVR information based on Arduino pin number
 //used to make sure the pins are in the same ports
 template<int first, int... others>
-struct PortChecker{
-  static const auto port = uint8_t(Port<first>::port);
+struct PinChecker{
+  static const auto port = uint8_t(digitalPin<first>::port);
   static constexpr bool check(){
-    return port == PortChecker<others...>::port;
+    return port == PinChecker<others...>::port;
   }
 };
 
-//Specialized PortChecker
+//Specialized PinChecker
 template<int first>
-struct PortChecker<first>{
-  static const auto port = uint8_t(Port<first>::port);
+struct PinChecker<first>{
+  static const auto port = uint8_t(digitalPin<first>::port);
 };
 
 
@@ -54,16 +32,16 @@ struct PortChecker<first>{
 
 template<int pinOne, int... pins>
 class GPIO {
-  static_assert(PortChecker<pinOne, pins...>::check(), 
+  static_assert(PinChecker<pinOne, pins...>::check(), 
       "pins aren't on the same port");
 
-  using port = Port<pinOne>;
+  using port = digitalPin<pinOne>;
   using portxReg = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::port),
         0, 8>;
-  using portx = typename portxReg::template Bit<port::bit, Port<pins>::bit...>;
+  using portx = typename portxReg::template Bit<port::bit, digitalPin<pins>::bit...>;
   using ddrxReg = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::ddr),
         0, 8>;
-  using ddrx = typename ddrxReg::template Bit<port::bit, Port<pins>::bit...>;
+  using ddrx = typename ddrxReg::template Bit<port::bit, digitalPin<pins>::bit...>;
   using pinList = typename Meta::makeList<pinOne, pins...>::Value;
 
   static constexpr uint8_t mask = ddrx::mask;
@@ -118,7 +96,7 @@ public:
 //specialized GPIO for only 1 GPIO
 template<int pin>
 class GPIO<pin>{
-  using port = Port<pin>; 
+  using port = digitalPin<pin>; 
   using portx = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::port), 
         port::bit, 1>;
   using ddrx = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::ddr), 
