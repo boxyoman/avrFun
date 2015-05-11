@@ -1,16 +1,17 @@
-/*******************************************************************/
+/*****************************************************************************/
 /*
  * The idea for this was stolen from: 
  *   https://github.com/kensmith/cppmmio
  *
- * template<typename mut_t, uint8_t addr, int offset, int width>
+ * template<typename mut_t, unsigned int addr, int offset, int width>
  * struct Register
  *
  *  mut_t:
  *    this defines the access of the register options include:
  *      ro - read only
- *      rw - read write
  *      wo - write only
+ *      rw - read write
+ *      wr - write read (for those of you with dyslexia or a bad memory)
  *
  *  addr:
  *    The address of the register
@@ -22,10 +23,18 @@
  *    The width of the register
  *
  * example: 
- *    using LED  = Register<rw_t, 0xffff0000, 0, 1>;
+ *    using LED  = Register<Access::rw, 0x2a, 0, 1>;
  *    LED::write(1); //turn the LED on
+ *
+ *    using BitMan = Register<Access::wr, 0x25>::template Bit<3,2,1>;
+ *    BitMan::write(0,1,0); // write a 0 to bit 3
+ *                          //       a 1 to bit 2
+ *                          //   and a 0 to bit 1
+ *
+ *    //For quick access
+ *    RegBit<0x12, 3, 2, 1>::write(0,1,0); //same as before
 */
-/******************************************************************/
+/*****************************************************************************/
 #pragma once
 
 #include <stdint.h>
@@ -39,17 +48,19 @@ enum class Access {
   ro,
   wo,
   rw,
+  wr,
 };
 
 template<Access mut_t, 
   unsigned int addr, 
-  int offset, 
-  int width, 
-  typename T = Device::Word>
+  int offset = 0, 
+  int width = std::numeric_limits<Device::Word>::digits, 
+  typename T = Device::Word
+  >
 class Register {
   using reg_t = volatile T*;
-  static const int deviceWidth = std::numeric_limits<T>::digits;
-  static constexpr uint8_t generate_mask(){
+  static constexpr int deviceWidth = std::numeric_limits<T>::digits;
+  static constexpr T generate_mask(){
     return (width>=deviceWidth)? ~0 : ((1 << width) - 1) << offset;
   }
   static constexpr T mask = generate_mask();
@@ -111,24 +122,26 @@ public:
     //generate the write value to write to multiple pins
     //inBit should be a List of the bits
     template<typename inBit, typename h, typename... t>
-    static uint8_t getWriteValue(h first, t... values) {
+    static T getWriteValue(h first, t... values) {
+      static_assert(std::numeric_limits<h>::is_integer, 
+          "Write values must be integers");
       return (1&first)<<inBit::Value 
         | getWriteValue<typename inBit::Next>(values...);
     };
     template<typename inPins>
-    static uint8_t getWriteValue(){
+    static T getWriteValue(){
       return 0;
     }
 
     //assign values to the references from a read
     template<typename inPins,typename H, typename... t>
-    static void assignRead(uint8_t value, H& head, t&... others){
-      uint8_t bit = inPins::Value;
+    static void assignRead(T value, H& head, t&... others){
+      T bit = inPins::Value;
       head = (value>>bit) & 1;
       assignRead<typename inPins::Next>(value, others...);
     }
     template<typename inPins>
-    static void assignRead(uint8_t value){
+    static void assignRead(T value){
       return;
     }
 
@@ -195,12 +208,14 @@ public:
           "You need the same number of references and pins");
       static_assert(mut_t != Access::wo, 
           "Trying to read from a write only register.");
-      uint8_t value = Register::read();   
+      T value = Register::read();   
       assignRead<bitList>(value, var...);
     }
 
   }; //End of class Bit<bits...>
 }; //End of class Register<mux_t, addr, offset, width, T>
 
+template<Device::Word addr, Device::Word... bits>
+using RegBit = typename Register<Access::rw, addr>:: template Bit<bits...>;
 
 }//End of namespace Register

@@ -1,10 +1,4 @@
-#pragma once
-
-#include <stdint.h>
-
-namespace Device{
-  using Word = uint8_t;
-}
+#include "Register.h"
 
 namespace Arduino{
 
@@ -38,6 +32,11 @@ struct Pin<PinTypes::Digital, pin>{
   static constexpr auto mask = (pin < 7)? 1<<pin : 1<<(pin-8);
   static constexpr auto bit  = (pin < 7)? pin : pin-8;
   static constexpr auto ddr  = uint8_t((pin < 7)? DDRx::D : DDRx::B);
+
+  using Port = LowLevel::Register<LowLevel::Access::wr, port>;
+  using PortBit = typename Port::template Bit<bit>;
+  using DDR = LowLevel::Register<LowLevel::Access::wr, ddr>;
+  using DDRBit = typename DDR::template Bit<bit>;
 }; //end of Pin<Digital, pin>
 
 //Information about the Analog pins
@@ -54,5 +53,4 @@ struct Pin<PinTypes::Analog, pin>{
   static constexpr auto adcl     = 0x78;
 }; // end of Pin<Analog, pin>
 
-}//end of Arduino
-
+} //end of Arduino
