@@ -35,13 +35,24 @@ struct Length<NIL, n>{
 //Find the Nth element of list
 template<typename list, int n>
 struct Nth{
-  using Value = Nth<typename list::Next, n-1>;
+  static constexpr int Value = Nth<typename list::Next, n-1>::Value;
 };
 template<typename list>
 struct Nth<list, 0>{
-  using Value = typename list::Value;
+  static constexpr int Value = list::Value;
 };
 
+template<typename lista, typename listb>
+struct isEqual{
+  static constexpr int valueA = lista::Value;
+  static constexpr int valueB = listb::Value;
+  static constexpr bool Value = valueA==valueB && 
+    isEqual<typename lista::Next, typename listb::Next>::Value;
+};
+template<>
+struct isEqual<NIL, NIL>{
+  static constexpr bool Value = true;
+};
 
 template<typename list, int n=Length<list>::Value>
 struct reverseList{

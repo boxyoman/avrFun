@@ -103,7 +103,7 @@ public:
     *device = (value & mask) << offset;
   }
 
-  //a class for direct simultaneous bit manipulations
+  //a class for easy simultaneous bit manipulations
   template<int ...bits>
   class Bit{
     static_assert(width == std::numeric_limits<T>::digits, 
@@ -157,7 +157,7 @@ public:
       static_assert(mut_t != Access::ro, 
           "Trying to write to a readonly register");
       value &= 1;
-      T currentValue = (mut_t != Access::ro) ? read() : 0;
+      T currentValue = (mut_t != Access::ro) ? Register::read() : 0;
       if(value == 1){
         Register::wwrite(mask | currentValue);
       }else{

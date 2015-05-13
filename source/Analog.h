@@ -3,13 +3,11 @@
 #include "Device.h"
 #include "Register.h"
 #include "PowerManager.h"
+#include "Pin.h"
 
 namespace Arduino{
 
 namespace{
-//Define pins
-template<uint8_t pin>
-using analogPin = Pin<PinTypes::Analog, pin>;
 
 //Make life easy
 using Access = LowLevel::Access;

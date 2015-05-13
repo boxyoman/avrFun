@@ -1,3 +1,4 @@
+#pragma once
 #include "Register.h"
 
 namespace Arduino{
@@ -8,12 +9,9 @@ enum class PinTypes{
   Analog
 };
 
-template<PinTypes pinType, uint8_t pin>
-struct Pin{};
- 
 //Information about the Digital pins
 template<uint8_t pin>
-struct Pin<PinTypes::Digital, pin>{
+struct digitalPin{
   static_assert(pin <= 13, "Not a valid pin");
   
   //AVR port addresses
@@ -42,7 +40,7 @@ struct Pin<PinTypes::Digital, pin>{
 //Information about the Analog pins
 //Useful for the arduino Mega, I think...
 template<uint8_t pin>
-struct Pin<PinTypes::Analog, pin>{
+struct analogPin{
   static_assert(pin<7, "Not a valid pin number");
   static constexpr auto muxValue = pin;
   static constexpr auto admux    = 0x7c;

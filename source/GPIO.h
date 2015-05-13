@@ -14,10 +14,6 @@ static constexpr unsigned int Input = 0;
 
 namespace {
 
-//Get AVR information based on Arduino pin number
-template<uint8_t pin>
-using digitalPin = Pin<PinTypes::Digital, pin>;
-
 //used to make sure the pins are in the same ports
 template<int first, int... others>
 struct PinChecker{
