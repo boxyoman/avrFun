@@ -11,9 +11,9 @@ namespace Arduino{
 //page 105
 namespace OC{
   constexpr auto Normal = LowLevel::BitSet(0,0,0);
-  constexpr auto Toggle = LowLevel::BitSet(0,0,0);
-  constexpr auto Set    = LowLevel::BitSet(0,0,0);
-  constexpr auto Clear  = LowLevel::BitSet(0,0,0);
+  constexpr auto Toggle = LowLevel::BitSet(0,0,1);
+  constexpr auto Set    = LowLevel::BitSet(0,1,0);
+  constexpr auto Clear  = LowLevel::BitSet(0,1,1);
 }
 //Wave Form Generation Modes
 //page 107
@@ -21,6 +21,7 @@ namespace WGM{
   constexpr auto Normal = LowLevel::BitSet(0,0,0);
   constexpr auto CTC = LowLevel::BitSet(0,1,0); //Clear time on compare
   constexpr auto Fast = LowLevel::BitSet(0,1,1);
+  constexpr auto FastA = LowLevel::BitSet(1,0,1);
 };
 //Clock Select
 namespace CS{
@@ -63,7 +64,6 @@ class Timer0 {
   //COM0A1 Probably won't even use half of them...
   //But who knows!
   using TCCR0A = LowLevel::Register<LowLevel::Access::wr, tccr0a>;
-
   using TCCR0B = LowLevel::Register<LowLevel::Access::wr, tccr0b>;
   using FOC0B  = TCCR0B::template Bit<6>;
   using FOC0A  = TCCR0B::template Bit<7>;
@@ -74,8 +74,8 @@ class Timer0 {
 
   using TIMSK0 = LowLevel::Register<LowLevel::Access::wr, timsk0>;
   using TOIE0  = TIMSK0::template Bit<0>;
-  using OCIE0A = TIMSK0::template Bit<0>;
-  using OCIE0B = TIMSK0::template Bit<0>;
+  using OCIE0A = TIMSK0::template Bit<1>;
+  using OCIE0B = TIMSK0::template Bit<2>;
 
   using TIFR0  = LowLevel::Register<LowLevel::Access::wr, tifr0>;
   using TOV0   = TIFR0::template Bit<0>;
@@ -89,6 +89,9 @@ public:
 
   static void turnOn(){
     PowerManager::turnOnTimer0();
+  }
+  static void forceA(){
+    FOC0A::write(1);
   }
 
   static void turnOffIntr(){

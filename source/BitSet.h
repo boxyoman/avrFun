@@ -12,7 +12,7 @@ class BitSet{
   bool bit1;
   bool bit2;
 public:
-  constexpr BitSet(bool b0, bool b1, bool b2): 
+  constexpr BitSet(bool b2, bool b1, bool b0): 
     bit0(b0), 
     bit1(b1),
     bit2(b2){ }

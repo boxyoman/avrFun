@@ -8,24 +8,13 @@ int main(int argc, char *argv[]){
 
   GPIO<13>::setOuput();
   GPIO<13>::write(Low);
-  GPIO<5,6>::setAllOutput();
   //Timer Test (Doesn't seem to work...)
   Timer0::turnOn();
-  Timer0::turnOffIntr();
-  Timer0::setCount(0);
-  Timer0::setCompareA(0x00);
-  Timer0::setCompareA(0xf0);
-  Timer0::Oc0aDdr::write(Output);
-  Timer0::setup(OC::Toggle, OC::Toggle, WGM::CTC, CS::Clk);
+  Timer0::setCompareA(0x40);
+  Timer0::setCompareB(0x40);
+  GPIO<5,6>::setAllOutput();
+  Timer0::setup(OC::Set, OC::Clear, WGM::Fast, CS::Clk1024);
 
-  bool value = 0;
-  while(1){
-    if(Timer0::countedOver()){
-      value ^= 1;
-      GPIO<13>::write(value);
-    }
-  }
-  
   //Analog<0>::init();
   //unsigned int value = Analog<0>::read();
   //if(value > 500){
