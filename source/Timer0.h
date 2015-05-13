@@ -18,10 +18,12 @@ namespace OC{
 //Wave Form Generation Modes
 //page 107
 namespace WGM{
-  constexpr auto Normal = LowLevel::BitSet(0,0,0);
-  constexpr auto CTC = LowLevel::BitSet(0,1,0); //Clear time on compare
-  constexpr auto Fast = LowLevel::BitSet(0,1,1);
-  constexpr auto FastA = LowLevel::BitSet(1,0,1);
+  constexpr auto Normal   = LowLevel::BitSet(0,0,0);
+  constexpr auto Phase    = LowLevel::BitSet(0,0,1);
+  constexpr auto CTC      = LowLevel::BitSet(0,1,0); //Clear time on compare
+  constexpr auto Fast     = LowLevel::BitSet(0,1,1);
+  constexpr auto PhaseToA = LowLevel::BitSet(1,0,1);
+  constexpr auto FastToA  = LowLevel::BitSet(1,1,1);
 };
 //Clock Select
 namespace CS{
