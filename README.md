@@ -7,6 +7,7 @@ Dependencies
 ============
 * cmake
 * avr-gcc (you probably need version 4.9)
+* avrdude
 
 Setting Up
 ==========
