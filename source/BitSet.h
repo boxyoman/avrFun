@@ -1,31 +1,60 @@
 #pragma once
 #include "templateList.h"
 #include <stdint.h>
+#include "config.h"
 
-namespace LowLevel{
+namespace LL{
 
-//How I want to implement it
-//I'm not good enough :( 
-//Why can't there be a STL for AVR
+template<int N>
 class BitSet{
-  bool bit0;
-  bool bit1;
-  bool bit2;
-public:
-  constexpr BitSet(bool b2, bool b1, bool b0): 
-    bit0(b0), 
-    bit1(b1),
-    bit2(b2){ }
+protected:
+  BitSet<N-1> _next;
+  bool _bit;
 
-  constexpr bool operator [] (int i) const{
-    return (i==0) ? bit0 : (i==1) ? bit1 : bit2;
+public:
+  const int Size = N;
+
+  template<typename... T>
+  AlwayInline constexpr BitSet(unsigned long long val) : 
+    _next(BitSet<N-1>(val)),
+    _bit((val>>(N-1))&1){}
+
+  template<int n>
+  AlwayInline constexpr BitSet(const BitSet<n>& a, int offset = 0) :
+    BitSet(a.getValue()>>offset) {}
+
+  AlwayInline constexpr bool operator [](int i) const{
+    return (i==Size-1) ? _bit : _next[i];
   }
-  constexpr bool operator != (BitSet a){
-    return a[0] != bit0 || a[1] != bit1 || a[2] != bit2;
+
+  AlwayInline constexpr unsigned long long getValue() const{
+    return _bit<<(N-1) | _next.getValue();   
   }
-  constexpr bool operator == (BitSet a){
-    return a[0] == bit0 && a[1] == bit1 && a[2] == bit2;
+
+  template<int n>
+  AlwayInline constexpr BitSet<N+n> operator + (const BitSet<n>& a) const{
+    return BitSet<N+n>(getValue()<<n | a.getValue());
+  }
+
+  AlwayInline constexpr bool operator != (const BitSet<N>& a) const{
+    return a[N-1] != _bit || a._next != _next;
+  }
+};
+template<>
+class BitSet<0>{
+protected:
+public:
+  AlwayInline constexpr BitSet(unsigned long long val) {}
+
+  AlwayInline constexpr bool operator [](int i) const{
+    return 0;
+  }
+  AlwayInline constexpr bool operator !=(const BitSet<1>& a) const{
+    return false;
+  }
+  AlwayInline constexpr unsigned long long getValue() const{
+    return 0;   
   }
 };
 
-}
+}//End of LL

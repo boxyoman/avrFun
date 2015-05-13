@@ -36,14 +36,12 @@ class GPIO {
       "Pins aren't on the same port");
 
   using port     = digitalPin<pinOne>;
-  using portxReg = LowLevel::Register<LowLevel::Access::rw,
-        uint8_t(port::port), 0, 8>;
+  using portxReg = LL::Register<LL::Access::rw, uint8_t(port::port)>;
 
   using portx    = typename portxReg::template Bit<port::bit,
         digitalPin<pins>::bit...>;
 
-  using ddrxReg  = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::ddr),
-        0, 8>;
+  using ddrxReg  = LL::Register<LL::Access::rw, uint8_t(port::ddr)>;
 
   using ddrx     = typename ddrxReg::template Bit<port::bit,
         digitalPin<pins>::bit...>;
@@ -53,27 +51,32 @@ class GPIO {
 
 public:
   //writes value to all pins
-  static void writeAll(uint8_t value){
+  AlwayInline static void writeAll(uint8_t value){
     portx::writeAll(value);
+  }
+
+  AlwayInline static void writeValue(uint8_t value){
+    auto bits = LL::BitSet<sizeof...(pins)+1>(value);
+    portx::write(bits);
   }
 
   //write a different value for every pin
   //Please only write 1 or 0. Bad things will happen if you don't.
   template<typename... H>
-  static void write(H... h){
+  AlwayInline static void write(H... h){
     static_assert(sizeof...(h) == sizeof...(pins)+1, 
         "You need the same number of write values and pins");
     portx::write(h...);
   }
 
   //set all to output
-  static void setAllOutput(){
+  AlwayInline static void setAllOutput(){
     uint8_t currentValue = ddrxReg::read();
     ddrxReg::wwrite(mask | currentValue);
   }
   
   //set all to input
-  static void setAllInput(){
+  AlwayInline static void setAllInput(){
     uint8_t currentValue = ddrxReg::read();
     ddrxReg::wwrite(~mask & currentValue);
   }
@@ -82,7 +85,7 @@ public:
   //1 is an output
   //0 is an input
   template<typename... T>
-  static void setType(T... values){
+  AlwayInline static void setType(T... values){
     static_assert(sizeof...(values) == sizeof...(pins)+1, 
         "You need the same number of write values and pins");
     ddrx::write(values...);
@@ -91,7 +94,7 @@ public:
   //Read from the GPIO
   //Pass references for ever bit
   template<typename... T>
-  static void read(T&... var){
+  AlwayInline static void read(T&... var){
     static_assert(sizeof...(var) == sizeof...(pins)+1, 
         "You need the same number of references and pins");
     portx::read(var...);
@@ -103,26 +106,26 @@ public:
 template<int pin>
 class GPIO<pin>{
   using port = digitalPin<pin>; 
-  using portx = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::port), 
+  using portx = LL::Register<LL::Access::rw, uint8_t(port::port), 
         port::bit, 1>;
-  using ddrx = LowLevel::Register<LowLevel::Access::rw, uint8_t(port::ddr), 
+  using ddrx = LL::Register<LL::Access::rw, uint8_t(port::ddr), 
         port::bit, 1>;
 public:
   //sets the pin to an input
-  static void setInput(){
+  AlwayInline static void setInput(){
     ddrx::write(0);
   }
   //sets the pin to an output
-  static void setOuput(){
+  AlwayInline static void setOuput(){
     ddrx::write(1);
   }
 
   //writes to the pin
-  static void write(uint8_t value){
+  AlwayInline static void write(uint8_t value){
     portx::write(value&1);
   }
   //reads from the pin
-  static uint8_t read(){
+  AlwayInline static uint8_t read(){
     return portx::read();
   }
 };

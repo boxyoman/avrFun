@@ -10,14 +10,14 @@ namespace Arduino{
 namespace{
 
 //Make life easy
-using Access = LowLevel::Access;
+using Access = LL::Access;
 template<Access mut_t, 
   unsigned int addr, 
   int offset = 0, 
   int width = std::numeric_limits<Device::Word>::digits, 
   typename T = Device::Word
   >
-using Reg = LowLevel::Register<mut_t, addr, offset, width, T>;
+using Reg = LL::Register<mut_t, addr, offset, width, T>;
 }//End of Anonymous namespace
 
 template<int pin>

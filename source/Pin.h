@@ -31,9 +31,9 @@ struct digitalPin{
   static constexpr auto bit  = (pin < 7)? pin : pin-8;
   static constexpr auto ddr  = uint8_t((pin < 7)? DDRx::D : DDRx::B);
 
-  using Port = LowLevel::Register<LowLevel::Access::wr, port>;
+  using Port = LL::Register<LL::Access::wr, port>;
   using PortBit = typename Port::template Bit<bit>;
-  using DDR = LowLevel::Register<LowLevel::Access::wr, ddr>;
+  using DDR = LL::Register<LL::Access::wr, ddr>;
   using DDRBit = typename DDR::template Bit<bit>;
 }; //end of Pin<Digital, pin>
 
