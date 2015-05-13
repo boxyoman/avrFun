@@ -7,14 +7,11 @@ using namespace Arduino;
 int main(int argc, char *argv[]){
 
   GPIO<13>::setOuput();
-  GPIO<13>::write(Low);
-  //Timer Test (Doesn't seem to work...)
   Timer0::turnOn();
-  Timer0::setCompareA(0x80);
+  Timer0::setCompareA(0xf0);
   Timer0::setCompareB(0x40);
   GPIO<5,6>::setAllOutput();
   Timer0::setup(OC::Clear, OC::Normal, WGM::Fast, CS::Clk);
-  Timer0::forceA();
 
   bool value = 0;
   while(1){

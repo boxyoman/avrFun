@@ -7,8 +7,8 @@ class PowerManager {
     smcrAddr = 0x53,
     prrAddr = 0x64,
   } addresses;
-  using PRR = LowLevel::Register<LowLevel::Access::rw, prrAddr>;
-  using SMCR = LowLevel::Register<LowLevel::Access::rw, smcrAddr>;
+  using PRR = LL::Register<LL::Access::rw, prrAddr>;
+  using SMCR = LL::Register<LL::Access::rw, smcrAddr>;
   using PRADC = PRR::template Bit<0>;
   using PRTIM0 = PRR::template Bit<5>;
 

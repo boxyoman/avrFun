@@ -41,8 +41,10 @@
 #include <limits>
 #include "Device.h"
 #include "templateList.h"
+#include "BitSet.h"
+#include "config.h"
 
-namespace LowLevel{
+namespace LL{
 
 enum class Access {
   ro,
@@ -60,7 +62,7 @@ template<Access mut_t,
 class Register {
   using reg_t = volatile T*;
   static constexpr int deviceWidth = std::numeric_limits<T>::digits;
-  static constexpr T generate_mask(){
+  AlwayInline static constexpr T generate_mask(){
     return (width>=deviceWidth)? ~0 : ((1 << width) - 1) << offset;
   }
   static constexpr T mask = generate_mask();
@@ -73,13 +75,13 @@ public:
   static_assert(width + offset <= std::numeric_limits<T>::digits, 
       "width overflow");
 
-  static T read(){
+  AlwayInline static T read(){
     static_assert(mut_t != Access::wo, "Write only register");
     reg_t device = reinterpret_cast<reg_t>(addr);
     return (*device & mask) >> offset;
   }
 
-  static void write(T val){
+  AlwayInline static void write(T val){
     static_assert(mut_t != Access::ro, "Read only register");
     if(mut_t == Access::rw)
       rwrite(val);
@@ -88,7 +90,7 @@ public:
   }
   
   //Called when writing has both read and write access
-  static void rwrite(int value){
+  AlwayInline static void rwrite(int value){
     static_assert(mut_t != Access::ro, 
         "Trying to write to a readonly register");
     reg_t device = reinterpret_cast<reg_t>(addr);
@@ -96,7 +98,7 @@ public:
   }
 
   //Called when writing has only write access
-  static void wwrite(int value){
+  AlwayInline static void wwrite(int value){
     static_assert(mut_t != Access::ro, 
         "Trying to write to a readonly register");
     reg_t device = reinterpret_cast<reg_t>(addr);
@@ -122,26 +124,32 @@ public:
     //generate the write value to write to multiple pins
     //inBit should be a List of the bits
     template<typename inBit, typename h, typename... t>
-    static T getWriteValue(h first, t... values) {
+    AlwayInline static T getWriteValue(h first, t... values) {
       static_assert(std::numeric_limits<h>::is_integer, 
           "Write values must be integers");
       return (1&first)<<inBit::Value 
         | getWriteValue<typename inBit::Next>(values...);
     };
     template<typename inPins>
-    static T getWriteValue(){
+    AlwayInline static T getWriteValue(){
       return 0;
+    }
+
+    template<typename inBit, int N>
+    AlwayInline constexpr static T getBitSetValue(const BitSet<N>& a, int i=N-1){
+      return (i == 0) ? a[i]<<inBit::Value : 
+        a[i]<<inBit::Value | getBitSetValue<typename inBit::Next>(a, i-1);
     }
 
     //assign values to the references from a read
     template<typename inPins,typename H, typename... t>
-    static void assignRead(T value, H& head, t&... others){
+    AlwayInline static void assignRead(T value, H& head, t&... others){
       T bit = inPins::Value;
       head = (value>>bit) & 1;
       assignRead<typename inPins::Next>(value, others...);
     }
     template<typename inPins>
-    static void assignRead(T value){
+    AlwayInline static void assignRead(T value){
       return;
     }
 
@@ -153,7 +161,7 @@ public:
     static constexpr T mask = maskGen<bits...>::mask;
 
     //write the same value to every bit
-    static void writeAll(T value){
+    AlwayInline static void writeAll(T value){
       static_assert(mut_t != Access::ro, 
           "Trying to write to a readonly register");
       value &= 1;
@@ -165,9 +173,34 @@ public:
       }
     }
 
+    template<int N>
+    AlwayInline static void write(BitSet<N> bitSet){
+      static_assert(N == sizeof...(bits), "Unmatched size");
+      if(mut_t == Access::wo){
+        Bit::wwrite(bitSet);
+      }else{
+        Bit::rwrite(bitSet);
+      }
+    }
+
+    template<int N>
+    AlwayInline static void rwrite(BitSet<N> bitSet){
+      static_assert(N == sizeof...(bits), "Unmatched size");
+      T value = getBitSetValue<bitList>(bitSet);
+      T currentValue = Register::read();
+      Register::wwrite((currentValue&~mask)|value);
+    }
+
+    template<int N>
+    AlwayInline static void wwrite(BitSet<N> bitSet){
+      static_assert(N == sizeof...(bits), "Unmatched size");
+      T value = getBitSetValue<bitList>(bitSet);
+      Register::wwrite(value);
+    }
+
     //write different values to the bits
     template<typename... H>
-    static void write(H... values){
+    AlwayInline static void write(H... values){
       static_assert(sizeof...(values) == sizeof...(bits), 
           "You need the same number of write values and bits");
       static_assert(mut_t != Access::ro, 
@@ -181,19 +214,19 @@ public:
     
     //write different values to the bits
     template<typename... H>
-    static void rwrite(H... values){
+    AlwayInline static void rwrite(H... values){
       static_assert(sizeof...(values) == sizeof...(bits), 
           "You need the same number of write values and bits");
       static_assert(mut_t != Access::ro, 
           "Trying to write to a readonly register");
       T value = getWriteValue<bitList>(values...);
-      T currentValue = (mut_t != Access::ro) ? Register::read() : 0;
+      T currentValue = Register::read();
       Register::wwrite((~mask & currentValue) | value);
     }
 
     //write different values to the bits overriding all bits
     template<typename... H>
-    static void wwrite(H... values){
+    AlwayInline static void wwrite(H... values){
       static_assert(sizeof...(values) == sizeof...(bits), 
           "You need the same number of write values and bits");
       static_assert(mut_t != Access::ro, 
@@ -203,7 +236,7 @@ public:
     }
     
     template<typename... H>
-    static void read(H&... var){
+    AlwayInline static void read(H&... var){
       static_assert(sizeof...(var) == sizeof...(bits), 
           "You need the same number of references and pins");
       static_assert(mut_t != Access::wo, 
