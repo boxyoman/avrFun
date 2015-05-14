@@ -103,17 +103,15 @@ public:
     TCNT0::write(value);
   }
   AlwayInline static bool countedOver(){
-    bool value;
-    TOV0::read(value);
-    return value;
+    return TOV0::read()[0];
   }
 
   AlwayInline static bool didMatchA(){
-    uint8_t value;
-    OCIE0A::read(value);
+    auto value = OCIE0A::read()[0];
     if(value) OCIE0A::write(value);
     return value == 1;
   }
+
   AlwayInline static uint8_t getCount(){
     return TCNT0::read();
   }

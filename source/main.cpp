@@ -13,12 +13,12 @@ int main(int argc, char *argv[]){
   GPIO<5,6>::setAllOutput();
   Timer0::setup(OC::Clear, OC::Normal, WGM::Fast, CS::Clk);
 
-  bool value = 0;
-  while(1){
-    if(Timer0::didMatchA()){
-      GPIO<13>::write(value ^= 1);
-    }
-  }
+  //bool value = 0;
+  //while(1){
+    //if(Timer0::didMatchA()){
+      //GPIO<13>::write(value ^= 1);
+    //}
+  //}
 
   //Analog<0>::init();
   //unsigned int value = Analog<0>::read();

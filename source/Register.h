@@ -111,6 +111,7 @@ public:
     static_assert(width == std::numeric_limits<T>::digits, 
         "Width must be width of register when using Bit");
 
+    static constexpr auto size = sizeof...(bits);
     //Generates Mask for reading 
     template<int pos1, int... others>
     struct maskGen{
@@ -141,16 +142,15 @@ public:
         a[i]<<inBit::Value | getBitSetValue<typename inBit::Next>(a, i-1);
     }
 
-    //assign values to the references from a read
-    template<typename inPins,typename H, typename... t>
-    AlwayInline static void assignRead(T value, H& head, t&... others){
-      T bit = inPins::Value;
-      head = (value>>bit) & 1;
-      assignRead<typename inPins::Next>(value, others...);
-    }
-    template<typename inPins>
-    AlwayInline static void assignRead(T value){
-      return;
+    template<typename inBits>
+    AlwayInline static T getReadValue(T value, int i=size-1){
+      auto bit = inBits::Value;
+      using Next = typename inBits::Next;
+      auto result = ((value>>bit)&1)<<i;
+      if(i==0){
+        return result;
+      }
+      return result | getReadValue<Next>(value, i-1);
     }
 
     //A list of the bits
@@ -235,14 +235,10 @@ public:
       Register::wwrite(value);
     }
     
-    template<typename... H>
-    AlwayInline static void read(H&... var){
-      static_assert(sizeof...(var) == sizeof...(bits), 
-          "You need the same number of references and pins");
-      static_assert(mut_t != Access::wo, 
-          "Trying to read from a write only register.");
-      T value = Register::read();   
-      assignRead<bitList>(value, var...);
+    AlwayInline static BitSet<size> read(){
+      auto value = Register::read();
+      value = getReadValue<bitList>(value);     
+      return BitSet<size>(value);
     }
 
   }; //End of class Bit<bits...>

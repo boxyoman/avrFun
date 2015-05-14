@@ -48,6 +48,7 @@ class GPIO {
 
   using pinList  = typename Meta::makeList<pinOne, pins...>::Value;
   static constexpr uint8_t mask = ddrx::mask;
+  static constexpr auto size = sizeof...(pins)+1;
 
 public:
   //writes value to all pins
@@ -56,7 +57,7 @@ public:
   }
 
   AlwayInline static void writeValue(uint8_t value){
-    auto bits = LL::BitSet<sizeof...(pins)+1>(value);
+    auto bits = LL::BitSet<size>(value);
     portx::write(bits);
   }
 
@@ -64,7 +65,7 @@ public:
   //Please only write 1 or 0. Bad things will happen if you don't.
   template<typename... H>
   AlwayInline static void write(H... h){
-    static_assert(sizeof...(h) == sizeof...(pins)+1, 
+    static_assert(sizeof...(h) == size, 
         "You need the same number of write values and pins");
     portx::write(h...);
   }
@@ -86,18 +87,15 @@ public:
   //0 is an input
   template<typename... T>
   AlwayInline static void setType(T... values){
-    static_assert(sizeof...(values) == sizeof...(pins)+1, 
+    static_assert(sizeof...(values) == size, 
         "You need the same number of write values and pins");
     ddrx::write(values...);
   }
   
   //Read from the GPIO
   //Pass references for ever bit
-  template<typename... T>
-  AlwayInline static void read(T&... var){
-    static_assert(sizeof...(var) == sizeof...(pins)+1, 
-        "You need the same number of references and pins");
-    portx::read(var...);
+  AlwayInline static LL::BitSet<size> read(){
+    return portx::read();
   }
 
 };

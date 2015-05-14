@@ -9,7 +9,8 @@ template<int N>
 class BitSet{
 protected:
   BitSet<N-1> _next;
-  bool _bit;
+  using T = bool;
+  T _bit;
 
 public:
   const int Size = N;
@@ -23,8 +24,8 @@ public:
   AlwayInline constexpr BitSet(const BitSet<n>& a, int offset = 0) :
     BitSet(a.getValue()>>offset) {}
 
-  AlwayInline constexpr bool operator [](int i) const{
-    return (i==Size-1) ? _bit : _next[i];
+  AlwayInline constexpr T operator [](int i) const{
+    return (i==Size-1) ? 1&_bit : _next[i];
   }
 
   AlwayInline constexpr unsigned long long getValue() const{
@@ -36,20 +37,21 @@ public:
     return BitSet<N+n>(getValue()<<n | a.getValue());
   }
 
-  AlwayInline constexpr bool operator != (const BitSet<N>& a) const{
+  AlwayInline constexpr T operator != (const BitSet<N>& a) const{
     return a[N-1] != _bit || a._next != _next;
   }
 };
 template<>
 class BitSet<0>{
 protected:
+  using T = bool;
 public:
   AlwayInline constexpr BitSet(unsigned long long val) {}
 
-  AlwayInline constexpr bool operator [](int i) const{
+  AlwayInline constexpr T operator [](int i) const{
     return 0;
   }
-  AlwayInline constexpr bool operator !=(const BitSet<1>& a) const{
+  AlwayInline constexpr T operator !=(const BitSet<1>& a) const{
     return false;
   }
   AlwayInline constexpr unsigned long long getValue() const{
