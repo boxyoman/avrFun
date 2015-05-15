@@ -43,6 +43,7 @@
 #include "templateList.h"
 #include "BitSet.h"
 #include "config.h"
+#include "Array.h"
 
 namespace LL{
 
@@ -112,6 +113,8 @@ public:
         "Width must be width of register when using Bit");
 
     static constexpr auto size = sizeof...(bits);
+    static constexpr auto bitArray = LL::array<int, size>{bits...};
+
     //Generates Mask for reading 
     template<int pos1, int... others>
     struct maskGen{
@@ -137,7 +140,7 @@ public:
     }
 
     template<typename inBit, int N>
-    AlwayInline constexpr static T getBitSetValue(const BitSet<N>& a, int i=N-1){
+    AlwayInline static T getBitSetValue(const BitSet<N>& a, int i=N-1){
       return (i == 0) ? a[i]<<inBit::Value : 
         a[i]<<inBit::Value | getBitSetValue<typename inBit::Next>(a, i-1);
     }

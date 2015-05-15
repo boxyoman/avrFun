@@ -1,1 +1,1 @@
-#define AlwayInline __attribute__((always_inline))
+#define AlwayInline inline __attribute__((always_inline))

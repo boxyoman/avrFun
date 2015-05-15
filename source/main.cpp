@@ -1,17 +1,21 @@
 #include "GPIO.h"
 #include "Timer0.h"
 #include "Analog.h"
+#include "Array.h"
 
 using namespace Arduino;
 
+
 int main(int argc, char *argv[]){
+  //auto value = GPIO<9,10>::read();
+  //GPIO<9, 10>::writeValue(value.getValue());
 
   GPIO<13>::setOuput();
   Timer0::turnOn();
-  Timer0::setCompareA(0xf0);
+  Timer0::setCompareA(0x80);
   Timer0::setCompareB(0x40);
   GPIO<5,6>::setAllOutput();
-  Timer0::setup(OC::Clear, OC::Normal, WGM::Fast, CS::Clk);
+  Timer0::setup(OC::Set, OC::Clear, WGM::CTC, CS::Clk64);
 
   //bool value = 0;
   //while(1){
