@@ -5,17 +5,17 @@
 
 using namespace Arduino;
 
-
 int main(int argc, char *argv[]){
-  //auto value = GPIO<9,10>::read();
-  //GPIO<9, 10>::writeValue(value.getValue());
+  
+  auto value = GPIO<9,8>::read();
+  GPIO<13,12>::writeValue(value.getValue());
 
-  GPIO<13>::setOuput();
-  Timer0::turnOn();
-  Timer0::setCompareA(0x80);
-  Timer0::setCompareB(0x40);
-  GPIO<5,6>::setAllOutput();
-  Timer0::setup(OC::Set, OC::Clear, WGM::CTC, CS::Clk64);
+  //GPIO<13>::setOuput();
+  //Timer0::turnOn();
+  //Timer0::setCompareA(0x80);
+  //Timer0::setCompareB(0x40);
+  //GPIO<5,6>::setAllOutput();
+  //Timer0::setup(OC::Set, OC::Clear, WGM::Phase, CS::Clk);
 
   //bool value = 0;
   //while(1){

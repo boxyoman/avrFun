@@ -139,21 +139,21 @@ public:
       return 0;
     }
 
-    template<typename inBit, int N>
-    AlwayInline static T getBitSetValue(const BitSet<N>& a, int i=N-1){
-      return (i == 0) ? a[i]<<inBit::Value : 
-        a[i]<<inBit::Value | getBitSetValue<typename inBit::Next>(a, i-1);
+    template<int N>
+    AlwayInline static auto getBitSetValue(LL::BitSet<N> a){
+      auto value = 0;
+      for (int i = 0; i < N; ++i){
+        value |= a[i]<<bitArray[(N-1)-i];
+      }
+      return value;
     }
 
-    template<typename inBits>
-    AlwayInline static T getReadValue(T value, int i=size-1){
-      auto bit = inBits::Value;
-      using Next = typename inBits::Next;
-      auto result = ((value>>bit)&1)<<i;
-      if(i==0){
-        return result;
+    AlwayInline static T getReadValue(T value){
+      T result = 0;
+      for (int i = 0; i < size; ++i){
+        result |= ((value>>bitArray[(size-1)-i])&1)<<i;
       }
-      return result | getReadValue<Next>(value, i-1);
+      return result;
     }
 
     //A list of the bits
@@ -189,7 +189,7 @@ public:
     template<int N>
     AlwayInline static void rwrite(BitSet<N> bitSet){
       static_assert(N == sizeof...(bits), "Unmatched size");
-      T value = getBitSetValue<bitList>(bitSet);
+      T value = getBitSetValue(bitSet);
       T currentValue = Register::read();
       Register::wwrite((currentValue&~mask)|value);
     }
@@ -197,7 +197,7 @@ public:
     template<int N>
     AlwayInline static void wwrite(BitSet<N> bitSet){
       static_assert(N == sizeof...(bits), "Unmatched size");
-      T value = getBitSetValue<bitList>(bitSet);
+      T value = getBitSetValue(bitSet);
       Register::wwrite(value);
     }
 
@@ -240,7 +240,7 @@ public:
     
     AlwayInline static BitSet<size> read(){
       auto value = Register::read();
-      value = getReadValue<bitList>(value);     
+      value = getReadValue(value);     
       return BitSet<size>(value);
     }
 
