@@ -9,10 +9,10 @@ project (LEDBlink C CXX ASM)
 unset (CMAKE_C_FLAGS)
 unset (CMAKE_CXX_FLAGS)
 
-set (CMAKE_C_FLAGS   "-mmcu=atmega328p -nostdlib")
-set (CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -x c++ -lgcc -std=c++14 -I${CMAKE_SOURCE_DIR}/include")
+set (CMAKE_C_FLAGS   "-mmcu=atmega328p  -Wall -Wl,--gc-sections -ffunction-sections -fdata-sections -DF_CPU=16000000UL ")
+set (CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -x c++ -std=c++14 -I${CMAKE_SOURCE_DIR}/include")
 
-set (CMAKE_EXE_LINKER_FLAGS "-static -nostdlib")
+set (CMAKE_EXE_LINKER_FLAGS "-static -L/usr/local/lib/gcc/avr/4.9.2/")
 
 set (SOURCE_DIR "source")
 set (TTYUSB "/dev/tty.usbserial-A5025UZM")

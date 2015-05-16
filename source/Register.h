@@ -141,16 +141,16 @@ public:
 
     template<int N>
     AlwayInline static auto getBitSetValue(LL::BitSet<N> a){
-      auto value = 0;
+      T value = 0;
       for (int i = 0; i < N; ++i){
-        value |= a[i]<<bitArray[(N-1)-i];
+        value |= (a[i]&1)<<bitArray[(N-1)-i];
       }
       return value;
     }
 
     AlwayInline static T getReadValue(T value){
       T result = 0;
-      for (int i = 0; i < size; ++i){
+      for (unsigned int i = 0; i < size; ++i){
         result |= ((value>>bitArray[(size-1)-i])&1)<<i;
       }
       return result;
