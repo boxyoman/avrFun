@@ -54,7 +54,6 @@ class Timer2 {
   using OCF2A  = TIFR2::template Bit<1>;
   using OCF2B  = TIFR2::template Bit<2>;
 
-
 public:
   using Oc2aDdr = digitalPin<11>::DDRBit;
   using Oc2bDdr = digitalPin<3>::DDRBit;
@@ -82,19 +81,14 @@ public:
   }
 
   AlwayInline static bool countedOver(){
-    return TOV2::read()[0];
+    return TOV2::testAndSet();
   }
 
-  //These don't work yet...
   AlwayInline static bool didMatchA(){
-    auto value = OCIE2A::read()[0];
-    if(value) OCIE2A::wwrite(value);
-    return value == 1;
+    return OCF2A::testAndSet();
   }
   AlwayInline static bool didMatchB(){
-    auto value = OCIE2B::read()[0];
-    if(value) OCIE2B::wwrite(value);
-    return value == 1;
+    return OCF2B::testAndSet();
   }
 
   AlwayInline static uint8_t getCount(){
