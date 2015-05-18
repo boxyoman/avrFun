@@ -43,12 +43,6 @@ template<uint8_t pin>
 struct analogPin{
   static_assert(pin<7, "Not a valid pin number");
   static constexpr auto muxValue = pin;
-  static constexpr auto admux    = 0x7c;
-  static constexpr auto acsr     = 0x50;
-  static constexpr auto adcsra   = 0x7a;
-  static constexpr auto adcsrb   = 0x7b;
-  static constexpr auto adch     = 0x79;
-  static constexpr auto adcl     = 0x78;
 }; // end of Pin<Analog, pin>
 
 } //end of Arduino

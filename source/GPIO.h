@@ -7,22 +7,22 @@
 namespace Arduino{
 
 //
-static constexpr unsigned int High = 1;
-static constexpr unsigned int Low = 0;
-static constexpr unsigned int Output = 1;
-static constexpr unsigned int Input = 0;
+static constexpr bool High = 1;
+static constexpr bool Low = 0;
+static constexpr bool Output = 1;
+static constexpr bool Input = 0;
 
 namespace {
 
 //used to make sure the pins are in the same ports
-template<int first, int... others>
+template<unsigned int first, unsigned int... others>
 struct PinChecker{
   static constexpr auto port = uint8_t(digitalPin<first>::port);
   static constexpr bool check(){
     return port == PinChecker<others...>::port;
   }
 };
-template<int first>
+template<unsigned int first>
 struct PinChecker<first>{
   static constexpr auto port = uint8_t(digitalPin<first>::port);
 };
@@ -30,7 +30,7 @@ struct PinChecker<first>{
 }//End of Anonymous
 
 
-template<int pinOne, int... pins>
+template<unsigned int pinOne, unsigned int... pins>
 class GPIO {
   static_assert(PinChecker<pinOne, pins...>::check(), 
       "Pins aren't on the same port");
@@ -101,7 +101,7 @@ public:
 };
 
 //specialized GPIO for only 1 GPIO
-template<int pin>
+template<unsigned int pin>
 class GPIO<pin>{
   using port = digitalPin<pin>; 
   using portx = LL::Register<LL::Access::rw, uint8_t(port::port), 

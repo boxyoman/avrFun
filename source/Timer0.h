@@ -26,12 +26,13 @@ class Timer0 {
     com0a0,
     com0a1
   }; //Bit positions for the TCCR0A register
+
   enum{
     cs00 = 0,
     cs01,
     cs02,
     wgm02,
-  };
+  }; //Bit positions for the TCCR0A register
   //COM0A0 Define Registers
   //COM0A1 Probably won't even use half of them...
   //But who knows!
@@ -62,23 +63,38 @@ public:
   AlwayInline static void turnOn(){
     PowerManager::turnOnTimer0();
   }
+  AlwayInline static void turnOff(){
+    PowerManager::turnOffTimer0();
+  }
+
   AlwayInline static void forceA(){
     FOC0A::write(1);
+  }
+  AlwayInline static void forceB(){
+    FOC0B::write(1);
   }
 
   AlwayInline static void turnOffIntr(){
     TIMSK0::write(0);
   }
+
   AlwayInline static void setCount(uint8_t value){
     TCNT0::write(value);
   }
+
   AlwayInline static bool countedOver(){
     return TOV0::read()[0];
   }
 
+  //These don't work yet...
   AlwayInline static bool didMatchA(){
     auto value = OCIE0A::read()[0];
-    if(value) OCIE0A::write(value);
+    if(value) OCIE0A::wwrite(value);
+    return value == 1;
+  }
+  AlwayInline static bool didMatchB(){
+    auto value = OCIE0B::read()[0];
+    if(value) OCIE0B::wwrite(value);
     return value == 1;
   }
 
@@ -86,7 +102,8 @@ public:
     return TCNT0::read();
   }
 
-  //Set up the data
+  //Set up the timer
+  //See Timer.h
   AlwayInline static void setup(const LL::BitSet<2> oc0a, 
       const LL::BitSet<2> oc0b = OC::Normal, 
       const LL::BitSet<3> wgm0 = WGM::Normal, 

@@ -7,9 +7,7 @@ using namespace Arduino;
 
 int main(int argc, char *argv[]){
   
-  auto value = GPIO<9,8>::read();
-  GPIO<11,10>::writeValue(value.getValue());
-  
+  //PWM 
   GPIO<13>::setOuput();
   Timer0::turnOn();
   Timer0::setCompareA(0xa0);
@@ -24,13 +22,18 @@ int main(int argc, char *argv[]){
     //}
   //}
 
-  //Analog<0>::init();
-  //unsigned int value = Analog<0>::read();
-  //if(value > 500){
-    //GPIO<13>::write(Low);
-  //}else{
-    //GPIO<13>::write(High);
-  //}
+  GPIO<13,12>::setAllOutput();
+  Analog::init(REFS::Vref, ADPrescale::P2, true);
+  Analog::setToADC<0>();
+  while(1){
+    auto value = Analog::read8<0>();
+    Timer0::setCompareA(value);
+    if(value > 200){
+      GPIO<13>::write(Low);
+    }else{
+      GPIO<13>::write(High);
+    }
+  }
 
   while(1);
   return 0;

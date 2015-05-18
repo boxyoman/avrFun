@@ -56,13 +56,13 @@ enum class Access {
 
 template<Access mut_t, 
   unsigned int addr, 
-  int offset = 0, 
-  int width = std::numeric_limits<Device::Word>::digits, 
+  unsigned int offset = 0, 
+  unsigned int width = std::numeric_limits<Device::Word>::digits, 
   typename T = Device::Word
   >
 class Register {
   using reg_t = volatile T*;
-  static constexpr int deviceWidth = std::numeric_limits<T>::digits;
+  static constexpr unsigned int deviceWidth = std::numeric_limits<T>::digits;
   AlwayInline static constexpr T generate_mask(){
     return (width>=deviceWidth)? ~0 : ((1 << width) - 1) << offset;
   }
@@ -91,7 +91,7 @@ public:
   }
   
   //Called when writing has both read and write access
-  AlwayInline static void rwrite(int value){
+  AlwayInline static void rwrite(T value){
     static_assert(mut_t != Access::ro, 
         "Trying to write to a readonly register");
     reg_t device = reinterpret_cast<reg_t>(addr);
@@ -99,28 +99,29 @@ public:
   }
 
   //Called when writing has only write access
-  AlwayInline static void wwrite(int value){
+  AlwayInline static void wwrite(T value){
     static_assert(mut_t != Access::ro, 
         "Trying to write to a readonly register");
     reg_t device = reinterpret_cast<reg_t>(addr);
     *device = (value & mask) << offset;
   }
 
-  //a class for easy simultaneous bit manipulations
-  template<int ...bits>
+  // A class for easy simultaneous bit manipulations
+  // Order from MSB to LSB
+  template<unsigned int ...bits>
   class Bit{
     static_assert(width == std::numeric_limits<T>::digits, 
         "Width must be width of register when using Bit");
 
     static constexpr auto size = sizeof...(bits);
-    static constexpr auto bitArray = LL::array<int, size>{bits...};
+    static constexpr auto bitArray = LL::array<unsigned int, size>{bits...};
 
     //Generates Mask for reading 
-    template<int pos1, int... others>
+    template<unsigned int pos1, unsigned int... others>
     struct maskGen{
       static constexpr T mask = 1<<pos1 | maskGen<others...>::mask;
     };
-    template<int pos>
+    template<unsigned int pos>
     struct maskGen<pos>{
       static constexpr T mask = 1<<pos;
     };
@@ -139,11 +140,11 @@ public:
       return 0;
     }
 
-    template<int N>
+    template<unsigned int N>
     AlwayInline static auto getBitSetValue(LL::BitSet<N> a){
       T value = 0;
-      for (int i = 0; i < N; ++i){
-        value |= (a[i]&1)<<bitArray[(N-1)-i];
+      for (unsigned int i = 0; i < N; ++i){
+        value |= (a[i])<<bitArray[(N-1)-i];
       }
       return value;
     }
@@ -176,7 +177,20 @@ public:
       }
     }
 
-    template<int N>
+    //Reads the whole register tests the bit
+    //if high write back the read to the register and return true
+    //if low returns false
+    AlwayInline static bool testAndSet(){
+      static_assert(size == 1, "Only able to test 1 bit");
+      auto value = Register::read();
+      if((value>>bitArray[0])&1){
+        Register::write(value);
+        return true;
+      }
+      return false;
+    }
+
+    template<unsigned int N>
     AlwayInline static void write(BitSet<N> bitSet){
       static_assert(N == sizeof...(bits), "Unmatched size");
       if(mut_t == Access::wo){
@@ -186,7 +200,7 @@ public:
       }
     }
 
-    template<int N>
+    template<unsigned int N>
     AlwayInline static void rwrite(BitSet<N> bitSet){
       static_assert(N == sizeof...(bits), "Unmatched size");
       T value = getBitSetValue(bitSet);
@@ -194,7 +208,7 @@ public:
       Register::wwrite((currentValue&~mask)|value);
     }
 
-    template<int N>
+    template<unsigned int N>
     AlwayInline static void wwrite(BitSet<N> bitSet){
       static_assert(N == sizeof...(bits), "Unmatched size");
       T value = getBitSetValue(bitSet);

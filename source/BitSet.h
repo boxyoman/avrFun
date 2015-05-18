@@ -5,7 +5,7 @@
 
 namespace LL{
 
-template<int N>
+template<unsigned int N>
 class BitSet{
 protected:
   BitSet<N-1> _next;
@@ -13,18 +13,18 @@ protected:
   T _bit;
 
 public:
-  const int Size = N;
+  const unsigned int Size = N;
 
   template<typename... T>
   AlwayInline constexpr BitSet(unsigned long long val) : 
     _next(BitSet<N-1>(val)),
     _bit((val>>(N-1))&1){}
 
-  template<int n>
-  AlwayInline constexpr BitSet(const BitSet<n>& a, int offset = 0) :
+  template<unsigned int n>
+  AlwayInline constexpr BitSet(const BitSet<n>& a, unsigned int offset = 0) :
     BitSet(a.getValue()>>offset) {}
 
-  AlwayInline constexpr T operator [](int i) const{
+  AlwayInline constexpr T operator [](unsigned int i) const{
     return (i==Size-1) ? 1&_bit : _next[i];
   }
 
@@ -32,7 +32,7 @@ public:
     return _bit<<(N-1) | _next.getValue();   
   }
 
-  template<int n>
+  template<unsigned int n>
   AlwayInline constexpr BitSet<N+n> operator + (const BitSet<n>& a) const{
     return BitSet<N+n>(getValue()<<n | a.getValue());
   }
@@ -41,14 +41,14 @@ public:
     return a[N-1] != _bit || a._next != _next;
   }
 };
+
 template<>
 class BitSet<0>{
 protected:
   using T = bool;
 public:
   AlwayInline constexpr BitSet(unsigned long long val) {}
-
-  AlwayInline constexpr T operator [](int i) const{
+  AlwayInline constexpr T operator [](unsigned int i) const{
     return 0;
   }
   AlwayInline constexpr T operator !=(const BitSet<1>& a) const{

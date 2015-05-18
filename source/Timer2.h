@@ -76,16 +76,24 @@ public:
   AlwayInline static void turnOffIntr(){
     TIMSK2::write(0);
   }
+
   AlwayInline static void setCount(uint8_t value){
     TCNT2::write(value);
   }
+
   AlwayInline static bool countedOver(){
     return TOV2::read()[0];
   }
 
+  //These don't work yet...
   AlwayInline static bool didMatchA(){
     auto value = OCIE2A::read()[0];
-    if(value) OCIE2A::write(value);
+    if(value) OCIE2A::wwrite(value);
+    return value == 1;
+  }
+  AlwayInline static bool didMatchB(){
+    auto value = OCIE2B::read()[0];
+    if(value) OCIE2B::wwrite(value);
     return value == 1;
   }
 
