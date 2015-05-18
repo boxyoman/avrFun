@@ -10,29 +10,26 @@ int main(int argc, char *argv[]){
   //PWM 
   GPIO<13>::setOuput();
   Timer0::turnOn();
-  Timer0::setCompareA(0xa0);
-  Timer0::setCompareB(0x40);
+  Timer0::setCompareA(0x80);
   GPIO<5,6>::setAllOutput();
-  Timer0::setup(OC::Set, OC::Clear, WGM::Phase, CS::Clk);
+  Timer0::setup(OC::Set, OC::Normal, WGM::Fast, CS::Clk);
 
-  //bool value = 0;
+  //uint8_t test = 0;
   //while(1){
     //if(Timer0::didMatchA()){
-      //GPIO<13>::write(value ^= 1);
+      //Timer0::setCompareA(test++);
+      //if(test == 0xff){
+        //test = 0;
+      //}
     //}
   //}
 
   GPIO<13,12>::setAllOutput();
-  Analog::init(REFS::Vref, ADPrescale::P2, true);
+  Analog::init();
   Analog::setToADC<0>();
   while(1){
     auto value = Analog::read8<0>();
     Timer0::setCompareA(value);
-    if(value > 200){
-      GPIO<13>::write(Low);
-    }else{
-      GPIO<13>::write(High);
-    }
   }
 
   while(1);

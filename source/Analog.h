@@ -7,18 +7,20 @@
 
 namespace Arduino{
 
-namespace{
-
-//Make life easy
-using Access = LL::Access;
-template<Access mut_t, 
-  unsigned int addr, 
-  int offset = 0, 
-  int width = std::numeric_limits<Device::Word>::digits, 
-  typename T = Device::Word
-  >
-using Reg = LL::Register<mut_t, addr, offset, width, T>;
-}//End of Anonymous namespace
+namespace ADRefs{
+  constexpr auto Vref = LL::BitSet<2>(0);
+  constexpr auto External = LL::BitSet<2>(1);
+  constexpr auto Internal = LL::BitSet<2>(3);
+}
+namespace ADPrescale{
+  constexpr auto P2   = LL::BitSet<2>(1);
+  constexpr auto P4   = LL::BitSet<2>(2);
+  constexpr auto P8   = LL::BitSet<2>(3);
+  constexpr auto P16  = LL::BitSet<2>(4);
+  constexpr auto P32  = LL::BitSet<2>(5);
+  constexpr auto P64  = LL::BitSet<2>(6);
+  constexpr auto P128 = LL::BitSet<2>(7);
+}
 
 class Analog {
   enum{
@@ -32,12 +34,10 @@ class Analog {
   };
 
   //useful registers
-  using ADMUX = Reg<Access::wr, admux>;
-  using REFS = typename ADMUX::template Bit<7,6>;
-  using ADLAR = typename ADMUX::template Bit<5>;
+  using ADMUX = LL::Register<LL::Access::wr, admux>;
   using MUX = typename ADMUX::template Bit<3,2,1,0>;
 
-  using ADCSRA = LL::Register<Access::wr, adcsra>;
+  using ADCSRA = LL::Register<LL::Access::wr, adcsra>;
   using ADEN = typename ADCSRA::template Bit<7>;
   using ADSC = typename ADCSRA::template Bit<6>;
   using ADATE = typename ADCSRA::template Bit<5>;
@@ -45,7 +45,7 @@ class Analog {
   using ADIE = typename ADCSRA::template Bit<3>;
   using ADPS = typename ADCSRA::template Bit<2,1,0>;
 
-  using Data = Reg<Access::wr, adcl, 0, 16, uint16_t>;
+  using Data = LL::Register<LL::Access::wr, adcl, 0, 16, uint16_t>;
   using ADCH = LL::Register<LL::Access::wr, adch>;
 
   using ADCSRB = LL::Register<LL::Access::wr, adcsrb>;
@@ -61,16 +61,21 @@ class Analog {
   using ADC5D = typename DIDR0::template Bit<5>;
 
 public:
-  AlwayInline static void init(){
+  
+  //initialize ADC
+  AlwayInline static void init(const LL::BitSet<2> ref = ADRefs::Vref, 
+      const LL::BitSet<3> prescale = ADPrescale::P2,
+      bool alignLeft = false){
+
+    //Turn on ADC
     PowerManager::turnOnAdc();
     //Enble ADC
     ADEN::write(1);
-    //Set Ref voltage
-    REFS::write(LL::BitSet<2>(1));
-    //Align to the right
-    ADLAR::write(1);
+    //Set Ref voltage and alignment
+    using RefAlign = typename ADMUX::template Bit<7,6,5>;
+    RefAlign::write(ref+LL::BitSet<1>(alignLeft));
     //set prescale
-    ADPS::write(LL::BitSet<3>(1));
+    ADPS::write(prescale);
   }
 
   //Set pin to an adc input
@@ -98,6 +103,8 @@ public:
     }
   }
 
+  //Read the output 
+  //use when left align is true
   template<unsigned pin>
   AlwayInline static uint16_t read8(){
     constexpr auto actPin = analogPin<pin>::muxValue;
@@ -107,6 +114,8 @@ public:
     return ADCH::read();
   }
 
+  //Read the output
+  //Use when left align is false
   template<unsigned pin>
   AlwayInline static uint16_t read(){
     constexpr auto actPin = analogPin<pin>::muxValue;

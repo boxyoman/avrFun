@@ -83,19 +83,15 @@ public:
   }
 
   AlwayInline static bool countedOver(){
-    return TOV0::read()[0];
+    return TOV0::testAndSet();
   }
 
-  //These don't work yet...
   AlwayInline static bool didMatchA(){
-    auto value = OCIE0A::read()[0];
-    if(value) OCIE0A::wwrite(value);
-    return value == 1;
+    return OCF0A::testAndSet();
   }
+
   AlwayInline static bool didMatchB(){
-    auto value = OCIE0B::read()[0];
-    if(value) OCIE0B::wwrite(value);
-    return value == 1;
+    return OCIE0B::testAndSet();
   }
 
   AlwayInline static uint8_t getCount(){
