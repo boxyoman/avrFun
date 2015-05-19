@@ -46,6 +46,7 @@ class Analog {
   using ADPS = typename ADCSRA::template Bit<2,1,0>;
 
   using Data = LL::Register<LL::Access::wr, adcl, 0, 16, uint16_t>;
+  using ADCL = LL::Register<LL::Access::wr, adcl>;
   using ADCH = LL::Register<LL::Access::wr, adch>;
 
   using ADCSRB = LL::Register<LL::Access::wr, adcsrb>;
@@ -60,6 +61,8 @@ class Analog {
   using ADC4D = typename DIDR0::template Bit<4>;
   using ADC5D = typename DIDR0::template Bit<5>;
 
+  using ACSR = LL::Register<LL::Access::wr, acsr>;
+  using ACD = ACSR::template Bit<7>;
 public:
   
   //initialize ADC
@@ -67,6 +70,7 @@ public:
       const LL::BitSet<3> prescale = ADPrescale::P2,
       bool alignLeft = false){
 
+    ACD::write(1);
     //Turn on ADC
     PowerManager::turnOnAdc();
     //Enble ADC
@@ -106,11 +110,15 @@ public:
   //Read the output 
   //use when left align is true
   template<unsigned pin>
-  AlwayInline static uint16_t read8(){
-    constexpr auto actPin = analogPin<pin>::muxValue;
+  AlwayInline static uint8_t read8(){
+    auto actPin = pin;
+    //constexpr auto actPin = analogPin<pin>::muxValue;
     MUX::write(LL::BitSet<4>(actPin));
+    
+    //start
     ADSC::write(1);
     while(!ADIF::testAndSet()); //wait for conversion to be done
+    ADCL::read();
     return ADCH::read();
   }
 
@@ -118,11 +126,13 @@ public:
   //Use when left align is false
   template<unsigned pin>
   AlwayInline static uint16_t read(){
-    constexpr auto actPin = analogPin<pin>::muxValue;
+    auto actPin = pin;
+    //constexpr auto actPin = analogPin<pin>::muxValue;
     MUX::write(LL::BitSet<4>(actPin));
     ADSC::write(1);
     while(!ADIF::read()[0]); //wait for conversion to be done
     ADIF::write(1); //clear the flag
+
     return Data::read();
   }
 

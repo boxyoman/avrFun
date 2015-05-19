@@ -8,11 +8,10 @@ using namespace Arduino;
 int main(int argc, char *argv[]){
   
   //PWM 
-  GPIO<13>::setOuput();
   Timer0::turnOn();
   Timer0::setCompareA(0x80);
   GPIO<5,6>::setAllOutput();
-  Timer0::setup(OC::Set, OC::Normal, WGM::Fast, CS::Clk);
+  Timer0::setup(OC::Set, OC::Normal, WGM::Phase, CS::Clk1024);
 
   //uint8_t test = 0;
   //while(1){
@@ -25,11 +24,17 @@ int main(int argc, char *argv[]){
   //}
 
   GPIO<13,12>::setAllOutput();
-  Analog::init();
+  Analog::init(ADRefs::Vref, ADPrescale::P2, true);
   Analog::setToADC<0>();
   while(1){
     auto value = Analog::read8<0>();
+    while(!Timer0::didMatchA());
     Timer0::setCompareA(value);
+    if(value >= 0x80){
+      GPIO<13>::write(1);
+    }else{
+      GPIO<13>::write(0);
+    }
   }
 
   while(1);
