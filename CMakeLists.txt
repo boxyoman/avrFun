@@ -11,15 +11,13 @@ unset (CMAKE_C_FLAGS)
 unset (CMAKE_CXX_FLAGS)
 
 set (CMAKE_C_FLAGS   "-mmcu=atmega328p  -fdiagnostics-color=always -Wall -Wl,--gc-sections -ffunction-sections -fdata-sections -DF_CPU=16000000UL ")
-set (CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -x c++ -std=c++14 -I${CMAKE_SOURCE_DIR}/include")
-
-set (CMAKE_EXE_LINKER_FLAGS "-static -L/usr/local/lib/gcc/avr/4.9.2/")
+set (CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14 -I${CMAKE_SOURCE_DIR}/include")
 
 set (SOURCE_DIR "source")
 set (TTYUSB "/dev/tty.usbserial-A5025UZM")
 
 add_executable ( LEDBlink
-  ${SOURCE_DIR}/main.s
+  ${SOURCE_DIR}/new.cpp
   ${SOURCE_DIR}/main.cpp
 )
 
