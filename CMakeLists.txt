@@ -11,9 +11,9 @@ unset (CMAKE_C_FLAGS)
 unset (CMAKE_CXX_FLAGS)
 
 set (CMAKE_C_FLAGS   "-mmcu=atmega328p  -fdiagnostics-color=always -Wall -Wl,--gc-sections -ffunction-sections -fdata-sections -DF_CPU=16000000UL ")
-set (CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14 -I${CMAKE_SOURCE_DIR}/include")
+set (CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14 -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_SOURCE_DIR}/STL")
 
-set (SOURCE_DIR "source")
+set (SOURCE_DIR "src")
 set (TTYUSB "/dev/tty.usbserial-A5025UZM")
 
 add_executable ( LEDBlink
