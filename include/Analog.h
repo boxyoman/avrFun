@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Device.h"
-#include "Register.h"
+#include "LL/Register.h"
 #include "PowerManager.h"
 #include "Pin.h"
 
