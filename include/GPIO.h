@@ -70,6 +70,11 @@ public:
     portx::write(h...);
   }
 
+  template<unsigned n>
+  AlwayInline static void write(LL::BitSet<n> a){
+    portx::write(a);
+  }
+
   //set all to output
   AlwayInline static void setAllOutput(){
     uint8_t currentValue = ddrxReg::read();
