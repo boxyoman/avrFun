@@ -1,44 +1,12 @@
-#include "GPIO.h"
-#include "Timer0.h"
-#include "Analog.h"
-#include "Array.h"
+#include "USART.h"
 
 using namespace Arduino;
 
 int main(int argc, char *argv[]){
-  
-  //PWM 
-  Timer0::turnOn();
-  Timer0::setCompareA(0x80);
-  GPIO<5,6>::setAllOutput();
-  Timer0::setup(OC::Set, OC::Normal, WGM::Phase, CS::Clk1024);
 
-  auto test = [](int a, int b){
-    return a+b;
-  };
-
-  //uint8_t test = 0;
-  //while(1){
-    //if(Timer0::didMatchA()){
-      //Timer0::setCompareA(test++);
-      //if(test == 0xff){
-        //test = 0;
-      //}
-    //}
-  //}
-
-  GPIO<13,12>::setAllOutput();
-  Analog::init(ADRefs::Vref, ADPrescale::P2, true);
-  Analog::setToADC<0>();
-  while(1){
-    auto value = Analog::read8<0>();
-    while(!Timer0::didMatchA());
-    Timer0::setCompareA(test(value,1));
-    if(value >= 0x80){
-      GPIO<13>::write(1);
-    }else{
-      GPIO<13>::write(0);
-    }
+  USART::setup(9600);
+  for (unsigned char i = 0; i < 0xff; ++i){
+    USART::put(i);
   }
 
   while(1);

@@ -20,7 +20,7 @@ class USART {
     ucsrnb,
     ucsrnc,
     ubrrn  = 0xc4,
-  };
+  };//Addresses
 
   using UDRn   = LL::Register<LL::Access::wr, udrn, 0, 16, uint16_t>;
   using RXB = LL::Register<LL::Access::rw, udrn+1>;
@@ -45,15 +45,15 @@ class USART {
 
   using UCSRnC = LL::Register<LL::Access::wr, ucsrnc>;
   using UMSELn = UCSRnC::template Bit<7,6>;
-  using UPMn = UCSRnC::template Bit<5,4>;
-  using USBSn = UCSRnC::template Bit<3>;
-  using UCSZn = UCSRnC::template Bit<2,1>;
+  using UPMn   = UCSRnC::template Bit<5,4>;
+  using USBSn  = UCSRnC::template Bit<3>;
+  using UCSZn  = UCSRnC::template Bit<2,1>;
   using UCPOLn = UCSRnC::template Bit<0>;
 
   using UBRR = LL::Register<LL::Access::wr, ubrrn, 0, 12, uint16_t>;
 
   static constexpr uint16_t baudValue(uint16_t BUAD){
-    return Device::clk/(8*BUAD)-1;
+    return Device::clk/(16*BUAD)-1;
   }
 public:
 
@@ -63,11 +63,16 @@ public:
     PowerManager::turnOnUSART();
     //set buad rate
     UBRR::write(baudValue(buad));
+    
     //Enable tx and rx
     UCSRnB::template Bit<4,3>::write(1,1);
+    //No parity
     UMSELn::write(0,0);
-    U2Xn::write(1);
 
+    //Enable 2x
+    //U2Xn::write(1);
+
+    //Set the size
     UCSZn::write(LL::BitSet<2>(ucsz));
     UCSZn2::write(LL::BitSet<1>(ucsz, 2));
   } 
@@ -81,11 +86,6 @@ public:
     for(auto &c : str){
       put(c);
     }
-  }
-
-  USART& operator << (const std::string str){
-    write(str);
-    return *this;
   }
 };
 
