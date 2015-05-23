@@ -8,13 +8,16 @@ class PowerManager {
     prrAddr = 0x64,
   } addresses;
 
-  using PRR      = LL::Register<LL::Access::rw, prrAddr>;
   using SMCR     = LL::Register<LL::Access::rw, smcrAddr>;
+
+  using PRR      = LL::Register<LL::Access::rw, prrAddr>;
   using PRADC    = PRR::template Bit<0>;
   using PRUSART0 = PRR::template Bit<1>;
-  using PRTIM0   = PRR::template Bit<5>;
+  using PRSPI    = PRR::template Bit<2>;
   using PRTIM1   = PRR::template Bit<3>;
-  using PRTIM2   = PRR::template Bit<7>;
+  using PRTIM0   = PRR::template Bit<5>;
+  using PRTIM2   = PRR::template Bit<6>;
+  using PRTWI    = PRR::template Bit<7>;
 
 public:
   static void turnOnUSART(){

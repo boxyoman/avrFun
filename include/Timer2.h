@@ -2,61 +2,60 @@
 #include "LL/Register.h"
 #include "PowerManager.h"
 #include "Pin.h"
-#include "templateList.h"
 #include "Timer.h"
 
 namespace Arduino{
 
 class Timer2 {
   enum{
-    tccr2a = 0xb0,
-    tccr2b,
-    tcnt2,
-    ocr2a,
-    ocr2b,
-    tifr2  = 0x37,
-    timsk2 = 0x70,
+    tccra = 0xb0,
+    tccrb,
+    tcnt,
+    ocra,
+    ocrb,
+    tifr  = 0x37,
+    timsk = 0x70,
   };
 
   enum{
-    wgm20 = 0,
-    wgm21,
-    com2b0 = 4,
-    com2b1,
-    com2a0,
-    com2a1
+    wgm0 = 0,
+    wgm1,
+    comb0 = 4,
+    comb1,
+    coma0,
+    coma1
   }; //Bit positions for the TCCR0A register
   enum{
-    cs20 = 0,
-    cs21,
-    cs22,
-    wgm22,
+    cs0 = 0,
+    cs1,
+    cs2,
+    wgm2,
   };
-  //COM0A0 Define Registers
-  //COM0A1 Probably won't even use half of them...
+
+  //Probably won't even use half of these...
   //But who knows!
-  using TCCR2A = LL::Register<LL::Access::wr, tccr2a>;
-  using TCCR2B = LL::Register<LL::Access::wr, tccr2b>;
-  using FOC2B  = TCCR2B::template Bit<6>;
-  using FOC2A  = TCCR2B::template Bit<7>;
+  using TCCRA = LL::Register<LL::Access::wr, tccra>;
+  using TCCRB = LL::Register<LL::Access::wr, tccrb>;
+  using FOCB  = TCCRB::template Bit<6>;
+  using FOCA  = TCCRB::template Bit<7>;
 
-  using TCNT2  = LL::Register<LL::Access::wr, tcnt2>;
-  using OCR2A  = LL::Register<LL::Access::wr, ocr2a>;
-  using OCR2B  = LL::Register<LL::Access::wr, ocr2b>;
+  using TCNT  = LL::Register<LL::Access::wr, tcnt>;
+  using OCRA  = LL::Register<LL::Access::wr, ocra>;
+  using OCRB  = LL::Register<LL::Access::wr, ocrb>;
 
-  using TIMSK2 = LL::Register<LL::Access::wr, timsk2>;
-  using TOIE2  = TIMSK2::template Bit<0>;
-  using OCIE2A = TIMSK2::template Bit<1>;
-  using OCIE2B = TIMSK2::template Bit<2>;
+  using TIMSK = LL::Register<LL::Access::wr, timsk>;
+  using TOIE  = TIMSK::template Bit<0>;
+  using OCIEA = TIMSK::template Bit<1>;
+  using OCIEB = TIMSK::template Bit<2>;
 
-  using TIFR2  = LL::Register<LL::Access::wr, tifr2>;
-  using TOV2   = TIFR2::template Bit<0>;
-  using OCF2A  = TIFR2::template Bit<1>;
-  using OCF2B  = TIFR2::template Bit<2>;
+  using TIFR  = LL::Register<LL::Access::wr, tifr>;
+  using TOV   = TIFR::template Bit<0>;
+  using OCFA  = TIFR::template Bit<1>;
+  using OCFB  = TIFR::template Bit<2>;
 
 public:
-  using Oc2aDdr = digitalPin<11>::DDRBit;
-  using Oc2bDdr = digitalPin<3>::DDRBit;
+  using OcADdr = digitalPin<11>::DDRBit;
+  using OcBDdr = digitalPin<3>::DDRBit;
 
   AlwayInline static void turnOn(){
     PowerManager::turnOnTimer2();
@@ -66,33 +65,33 @@ public:
   }
 
   AlwayInline static void forceA(){
-    FOC2A::write(1);
+    FOCA::write(1);
   }
   AlwayInline static void forceB(){
-    FOC2B::write(1);
+    FOCB::write(1);
   }
 
   AlwayInline static void turnOffIntr(){
-    TIMSK2::write(0);
+    TIMSK::write(0);
   }
 
   AlwayInline static void setCount(uint8_t value){
-    TCNT2::write(value);
+    TCNT::write(value);
   }
 
   AlwayInline static bool countedOver(){
-    return TOV2::testAndSet();
+    return TOV::testAndSet();
   }
 
   AlwayInline static bool didMatchA(){
-    return OCF2A::testAndSet();
+    return OCFA::testAndSet();
   }
   AlwayInline static bool didMatchB(){
-    return OCF2B::testAndSet();
+    return OCFB::testAndSet();
   }
 
   AlwayInline static uint8_t getCount(){
-    return TCNT2::read();
+    return TCNT::read();
   }
 
   //Set up the timer
@@ -102,19 +101,19 @@ public:
       const LL::BitSet<3> wgm = WGM::Normal, 
       const LL::BitSet<3> cs = CS::Clk){
 
-    using tccra = TCCR2A::template Bit<com2a1, com2a0, com2b1, com2b0, 
-          wgm21, wgm20>;
-    using tccrb = TCCR2B::template Bit<wgm22, cs22, cs21, cs20>;
+    using tccra = TCCRA::template Bit<coma1, coma0, comb1, comb0, wgm1, wgm0>;
+    using tccrb = TCCRB::template Bit<wgm2, cs2, cs1, cs0>;
 
     tccra::wwrite(oca +  ocb + LL::BitSet<2>(wgm));
     tccrb::wwrite(LL::BitSet<1>(wgm,2) + cs); 
   }
 
   AlwayInline static void setCompareA(uint8_t value){
-    OCR2A::write(value);
+    OCRA::write(value);
   }
   AlwayInline static void setCompareB(uint8_t value){
-    OCR2B::write(value);
+    OCRB::write(value);
   }
+
 };
 }//end of Arduino
