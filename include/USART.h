@@ -53,7 +53,7 @@ class USART {
   using UBRR = LL::Register<LL::Access::wr, ubrrn, 0, 12, uint16_t>;
 
   static constexpr uint16_t baudValue(uint16_t BUAD){
-    return Device::clk/(16*BUAD)-1;
+    return Device::clk/16/BUAD-1;
   }
 public:
 
