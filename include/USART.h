@@ -1,9 +1,13 @@
 #pragma once
 #include "LL/Register.h"
 #include "PowerManager.h"
-#include <string>
+#include <limits>
 
 namespace Arduino{
+
+constexpr int power(int base, int exp){
+  return ((exp == 0) ? 1 : base * power(base, --exp));
+}
 
 namespace UCSZ{
   constexpr auto bit5 = LL::BitSet<3>(0);
@@ -57,7 +61,7 @@ class USART {
   }
 public:
 
-  static void setup(uint16_t buad,
+  AlwayInline static void setup(uint16_t buad,
       LL::BitSet<3> ucsz = UCSZ::bit8){
 
     PowerManager::turnOnUSART();
@@ -77,15 +81,27 @@ public:
     UCSZn2::write(LL::BitSet<1>(ucsz, 2));
   } 
 
+  static void write(const char* str){
+    do{
+      put(*str);
+    }while(*(++str) != '\0');
+  }
+
+  template<typename T>
+  static void writeNum(T number){
+    static_assert(std::numeric_limits<T>::is_integer, 
+        "type is not an integer");
+
+    T highNum = power(10, std::numeric_limits<T>::digits10);
+    do{
+      put((number/highNum) | 0x30);
+      number = number % highNum;
+    }while((highNum /= 10));
+  }
+
   static void put(unsigned char c){
     while(!UDREn::read()[0]);
     UDRn::write(c);
-  }
-
-  static void write(const std::string& str){
-    for(auto &c : str){
-      put(c);
-    }
   }
 };
 

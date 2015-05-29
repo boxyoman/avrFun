@@ -8,9 +8,12 @@ using namespace Arduino;
 int main(int argc, char *argv[]){
   
   USART::setup(9600);
-  USART::put('a');
-  
-  USART::write("Hello World");
+
+  Analog::init(true);
+  Analog::setToADC<0>();
+
+  USART::writeNum(Analog::read8<0>());
+  USART::write("\r\n");
 
   while(1);
   return 0;

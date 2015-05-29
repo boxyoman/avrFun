@@ -6,19 +6,22 @@
 
 namespace Arduino{
 
+
 namespace ADRefs{
-  constexpr auto Vref = LL::BitSet<2>(0);
-  constexpr auto External = LL::BitSet<2>(1);
-  constexpr auto Internal = LL::BitSet<2>(3);
+  using T = LL::BitSet<2>;
+  constexpr auto Vref = T(0);
+  constexpr auto External = T(1);
+  constexpr auto Internal = T(3);
 }
 namespace ADPrescale{
-  constexpr auto P2   = LL::BitSet<2>(1);
-  constexpr auto P4   = LL::BitSet<2>(2);
-  constexpr auto P8   = LL::BitSet<2>(3);
-  constexpr auto P16  = LL::BitSet<2>(4);
-  constexpr auto P32  = LL::BitSet<2>(5);
-  constexpr auto P64  = LL::BitSet<2>(6);
-  constexpr auto P128 = LL::BitSet<2>(7);
+  using T = LL::BitSet<3>;
+  constexpr auto P2   = T(1);
+  constexpr auto P4   = T(2);
+  constexpr auto P8   = T(3);
+  constexpr auto P16  = T(4);
+  constexpr auto P32  = T(5);
+  constexpr auto P64  = T(6);
+  constexpr auto P128 = T(7);
 }
 
 class Analog {
@@ -65,11 +68,10 @@ class Analog {
 public:
   
   //initialize ADC
-  AlwayInline static void init(const LL::BitSet<2> ref = ADRefs::Vref, 
-      const LL::BitSet<3> prescale = ADPrescale::P2,
+  AlwayInline static void init(const ADRefs::T ref = ADRefs::Vref, 
+      const ADPrescale::T prescale = ADPrescale::P2,
       bool alignLeft = false){
 
-    ACD::write(1);
     //Turn on ADC
     PowerManager::turnOnAdc();
     //Enble ADC
@@ -79,6 +81,20 @@ public:
     RefAlign::write(ref+LL::BitSet<1>(alignLeft));
     //set prescale
     ADPS::write(prescale);
+  }
+
+  AlwayInline static void init(
+      const ADPrescale::T prescale,
+      const ADRefs::T ref = ADRefs::Vref, 
+      bool alignLeft = false){
+    init(ref, prescale, alignLeft);
+  }
+
+  AlwayInline static void init(bool alignLeft,
+      const ADPrescale::T prescale = ADPrescale::P2,
+      const ADRefs::T ref = ADRefs::Vref 
+      ){
+    init(ref, prescale, alignLeft);
   }
 
   //Set pin to an adc input
