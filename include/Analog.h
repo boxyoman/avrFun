@@ -3,6 +3,7 @@
 #include "LL/Register.h"
 #include "PowerManager.h"
 #include "Pin.h"
+#include "LL/RegSet.h"
 
 namespace Arduino{
 
@@ -35,17 +36,26 @@ class Analog {
     acsr   = 0x50,
   };
 
+  enum{
+#define ADPS 2,1,0
+    ADIE = 3,
+    ADIF,
+    ADATE,
+    ADSC,
+    ADEN,
+  };
+
   //useful registers
   using ADMUX = LL::Register<LL::Access::wr, admux>;
   using MUX = typename ADMUX::template Bit<3,2,1,0>;
 
-  using ADCSRA = LL::Register<LL::Access::wr, adcsra>;
-  using ADEN = typename ADCSRA::template Bit<7>;
-  using ADSC = typename ADCSRA::template Bit<6>;
-  using ADATE = typename ADCSRA::template Bit<5>;
-  using ADIF = typename ADCSRA::template Bit<4>;
-  using ADIE = typename ADCSRA::template Bit<3>;
-  using ADPS = typename ADCSRA::template Bit<2,1,0>;
+  using ADCSRAReg = LL::Register<LL::Access::wr, adcsra>;
+  //using ADEN = typename ADCSRA::template Bit<7>;
+  using ADSCReg = typename ADCSRAReg::template Bit<6>;
+  //using ADATE = typename ADCSRA::template Bit<5>;
+  using ADIFReg = typename ADCSRAReg::template Bit<4>;
+  //using ADIE = typename ADCSRA::template Bit<3>;
+  //using ADPS = typename ADCSRA::template Bit<2,1,0>;
 
   using Data = LL::Register<LL::Access::wr, adcl, 0, 16, uint16_t>;
   using ADCL = LL::Register<LL::Access::wr, adcl>;
@@ -74,13 +84,18 @@ public:
 
     //Turn on ADC
     PowerManager::turnOnAdc();
+
+    //Set Ref voltage 
+    auto test = LL::RegSet<admux>();
+    test.write<7,6>(ref);
+    //set alignment
+    test.write<5>(alignLeft);
+
     //Enble ADC
-    ADEN::write(1);
-    //Set Ref voltage and alignment
-    using RefAlign = typename ADMUX::template Bit<7,6,5>;
-    RefAlign::write(ref+LL::BitSet<1>(alignLeft));
+    auto ADCSRA = LL::RegSet<adcsra>();
+    ADCSRA.write<ADEN>(1);
     //set prescale
-    ADPS::write(prescale);
+    ADCSRA.write<ADPS>(prescale);
   }
 
   AlwayInline static void init(
@@ -101,38 +116,18 @@ public:
   template<unsigned pin>
   AlwayInline static void setToADC(){
     constexpr auto actPin = analogPin<pin>::muxValue;
-    switch (actPin){
-      case 0:
-        ADC0D::write(1);
-        break;
-      case 1:
-        ADC1D::write(1);
-        break;
-      case 2:
-        ADC2D::write(1);
-      case 3:
-        ADC3D::write(1);
-        break;
-      case 4:
-        ADC4D::write(1);
-        break;
-      case 5:
-        ADC5D::write(1);
-        break;
-    }
+    auto didr = LL::RegSet<didr0>();
+    didr.write<actPin>(1);
   }
 
   //Read the output 
   //use when left align is true
   template<unsigned pin>
   AlwayInline static uint8_t read8(){
-    auto actPin = pin;
-    //constexpr auto actPin = analogPin<pin>::muxValue;
+    constexpr auto actPin = analogPin<pin>::muxValue;
     MUX::write(LL::BitSet<4>(actPin));
-    
-    //start
-    ADSC::write(1);
-    while(!ADIF::testAndSet()); //wait for conversion to be done
+    ADSCReg::write(1);
+    while(!ADIFReg::testAndSet()); //wait for conversion to be done
     ADCL::read();
     return ADCH::read();
   }
@@ -141,13 +136,11 @@ public:
   //Use when left align is false
   template<unsigned pin>
   AlwayInline static uint16_t read(){
-    auto actPin = pin;
-    //constexpr auto actPin = analogPin<pin>::muxValue;
+    constexpr auto actPin = analogPin<pin>::muxValue;
     MUX::write(LL::BitSet<4>(actPin));
-    ADSC::write(1);
-    while(!ADIF::read()[0]); //wait for conversion to be done
-    ADIF::write(1); //clear the flag
-
+    ADSCReg::write(1);
+    while(!ADIFReg::testAndSet()); //wait for conversion to be done
+    
     return Data::read();
   }
 

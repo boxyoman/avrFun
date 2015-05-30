@@ -27,12 +27,12 @@
  *    LED::write(1); //turn the LED on
  *
  *    using BitMan = Register<Access::wr, 0x25>::template Bit<3,2,1>;
- *    BitMan::write(0,1,0); // write a 0 to bit 3
+ *    BitMan::write(0b010); // write a 0 to bit 3
  *                          //       a 1 to bit 2
  *                          //   and a 0 to bit 1
  *
  *    //For quick access
- *    RegBit<0x12, 3, 2, 1>::write(0,1,0); //same as before
+ *    RegBit<0x12, 3, 2, 1>::write(0b010); //same as before
 */
 /*****************************************************************************/
 #pragma once
@@ -129,7 +129,7 @@ public:
     //generate the write value to write to multiple pins
     //inBit should be a List of the bits
     template<typename inBit, typename h, typename... t>
-    AlwayInline static T getWriteValue(h first, t... values) {
+    AlwayInline static const T getWriteValue(const h first, t... values) {
       static_assert(std::numeric_limits<h>::is_integer, 
           "Write values must be integers");
       return (1&first)<<inBit::Value 
@@ -141,7 +141,7 @@ public:
     }
 
     template<unsigned int N>
-    AlwayInline static auto getBitSetValue(LL::BitSet<N> a){
+    AlwayInline static const auto getBitSetValue(const LL::BitSet<N> a){
       T value = 0;
       for (unsigned int i = 0; i < N; ++i){
         value |= (a[i])<<bitArray[(N-1)-i];
@@ -149,7 +149,7 @@ public:
       return value;
     }
 
-    AlwayInline static T getReadValue(T value){
+    AlwayInline static T getReadValue(const T value){
       T result = 0;
       for (unsigned int i = 0; i < size; ++i){
         result |= ((value>>bitArray[(size-1)-i])&1)<<i;
@@ -165,7 +165,7 @@ public:
     static constexpr T mask = maskGen<bits...>::mask;
 
     //write the same value to every bit
-    AlwayInline static void writeAll(T value){
+    AlwayInline static void writeAll(const T value){
       static_assert(mut_t != Access::ro, 
           "Trying to write to a readonly register");
       value &= 1;
@@ -190,9 +190,7 @@ public:
       return false;
     }
 
-    template<unsigned int N>
-    AlwayInline static void write(BitSet<N> bitSet){
-      static_assert(N == sizeof...(bits), "Unmatched size");
+    AlwayInline static void write(const BitSet<size> bitSet){
       if(mut_t == Access::wo){
         Bit::wwrite(bitSet);
       }else{
@@ -200,59 +198,18 @@ public:
       }
     }
 
-    template<unsigned int N>
-    AlwayInline static void rwrite(BitSet<N> bitSet){
-      static_assert(N == sizeof...(bits), "Unmatched size");
+    AlwayInline static void rwrite(const BitSet<size> bitSet){
       T value = getBitSetValue(bitSet);
       T currentValue = Register::read();
       Register::wwrite((currentValue&~mask)|value);
     }
 
-    template<unsigned int N>
-    AlwayInline static void wwrite(BitSet<N> bitSet){
-      static_assert(N == sizeof...(bits), "Unmatched size");
+    AlwayInline static void wwrite(const BitSet<size> bitSet){
       T value = getBitSetValue(bitSet);
       Register::wwrite(value);
     }
-
-    //write different values to the bits
-    template<typename... H>
-    AlwayInline static void write(H... values){
-      static_assert(sizeof...(values) == sizeof...(bits), 
-          "You need the same number of write values and bits");
-      static_assert(mut_t != Access::ro, 
-          "Trying to write to a readonly register");
-      if(mut_t == Access::wo){
-        Bit::wwrite(values...);
-      }else{
-        Bit::rwrite(values...);
-      }
-    }
     
-    //write different values to the bits
-    template<typename... H>
-    AlwayInline static void rwrite(H... values){
-      static_assert(sizeof...(values) == sizeof...(bits), 
-          "You need the same number of write values and bits");
-      static_assert(mut_t != Access::ro, 
-          "Trying to write to a readonly register");
-      T value = getWriteValue<bitList>(values...);
-      T currentValue = Register::read();
-      Register::wwrite((~mask & currentValue) | value);
-    }
-
-    //write different values to the bits overriding all bits
-    template<typename... H>
-    AlwayInline static void wwrite(H... values){
-      static_assert(sizeof...(values) == sizeof...(bits), 
-          "You need the same number of write values and bits");
-      static_assert(mut_t != Access::ro, 
-          "Trying to write to a readonly register");
-      T value = getWriteValue<bitList>(values...);
-      Register::wwrite(value);
-    }
-    
-    AlwayInline static BitSet<size> read(){
+    AlwayInline static const BitSet<size> read(){
       auto value = Register::read();
       value = getReadValue(value);     
       return BitSet<size>(value);

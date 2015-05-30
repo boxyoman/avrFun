@@ -69,16 +69,13 @@ public:
     UBRR::write(baudValue(buad));
     
     //Enable tx and rx
-    UCSRnB::template Bit<4,3>::write(1,1);
+    UCSRnB::template Bit<4,3>::write(0b11);
     //No parity
-    UMSELn::write(0,0);
-
-    //Enable 2x
-    //U2Xn::write(1);
+    UMSELn::write(0);
 
     //Set the size
-    UCSZn::write(LL::BitSet<2>(ucsz));
-    UCSZn2::write(LL::BitSet<1>(ucsz, 2));
+    UCSZn::write(ucsz);
+    UCSZn2::write(ucsz>>2);
   } 
 
   static void write(const char* str){

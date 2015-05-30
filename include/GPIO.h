@@ -33,6 +33,15 @@ template<unsigned int pinOne, unsigned int... pins>
 class GPIO {
   static_assert(PinChecker<pinOne, pins...>::check(), 
       "Pins aren't on the same port");
+  static constexpr auto size = sizeof...(pins)+1;
+
+  template<typename... T>
+  static uint8_t getBitSetValue(bool h, T... t){
+    return h<<sizeof...(t) | getBitSetValue(t...);
+  }
+  static auto getBitSetValue(){
+    return 0;
+  }
 
   using port     = digitalPin<pinOne>;
   using portxReg = LL::Register<LL::Access::rw, uint8_t(port::port)>;
@@ -47,7 +56,6 @@ class GPIO {
 
   using pinList  = typename Meta::makeList<pinOne, pins...>::Value;
   static constexpr uint8_t mask = ddrx::mask;
-  static constexpr auto size = sizeof...(pins)+1;
 
 public:
   //writes value to all pins
@@ -66,7 +74,7 @@ public:
   AlwayInline static void write(H... h){
     static_assert(sizeof...(h) == size, 
         "You need the same number of write values and pins");
-    portx::write(h...);
+    portx::write(getBitSetValue(h...));
   }
 
   template<unsigned n>
@@ -93,7 +101,7 @@ public:
   AlwayInline static void setType(T... values){
     static_assert(sizeof...(values) == size, 
         "You need the same number of write values and pins");
-    ddrx::write(values...);
+    ddrx::write(getBitSetValue(values...));
   }
   
   //Read from the GPIO

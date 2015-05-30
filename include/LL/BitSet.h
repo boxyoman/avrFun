@@ -28,6 +28,10 @@ public:
     return (bits>>i) & 1;
   }
 
+  AlwayInline constexpr BitSet<N> operator >>(std::size_t i) const{
+    return bits>>i;
+  }
+
   AlwayInline constexpr T getValue() const{
     return bits;
   }
