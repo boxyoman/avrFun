@@ -1,5 +1,6 @@
 #pragma once
 #include "LL/Register.h"
+#include "LL/RegSet.h"
 #include "PowerManager.h"
 #include "Pin.h"
 #include "Timer.h"
@@ -7,49 +8,26 @@
 namespace Arduino{
 
 class Timer0 {
-  enum{
-    tccra = 0x44,
-    tccrb,
-    tcnt,
-    ocra,
-    ocrb,
-    tifr  = 0x35,
-    timsk = 0x6e,
-  };
-
-  enum{
-    wgm0 = 0,
-    wgm1,
-    comb0 = 4,
-    comb1,
-    coma0,
-    coma1
-  }; //Bit positions for the TCCR0A register
-
-  enum{
-    cs0 = 0,
-    cs1,
-    cs2,
-    wgm2,
-  }; //Bit positions for the TCCR0B register
+  using addr = avr::addr;
+  using bit = avr::bits::timer0;
 
   //Probably won't even use half of these...
   //But who knows!
-  using TCCRA = LL::Register<LL::Access::wr, tccra>;
-  using TCCRB = LL::Register<LL::Access::wr, tccrb>;
+  using TCCRA = LL::Register<LL::Access::wr, addr::tccr0a>;
+  using TCCRB = LL::Register<LL::Access::wr, addr::tccr0b>;
   using FOCB  = TCCRB::template Bit<6>;
   using FOCA  = TCCRB::template Bit<7>;
 
-  using TCNT  = LL::Register<LL::Access::wr, tcnt>;
-  using OCRA  = LL::Register<LL::Access::wr, ocra>;
-  using OCRB  = LL::Register<LL::Access::wr, ocrb>;
+  using TCNT  = LL::Register<LL::Access::wr, addr::tcnt0>;
+  using OCRA  = LL::Register<LL::Access::wr, addr::ocr0a>;
+  using OCRB  = LL::Register<LL::Access::wr, addr::ocr0b>;
 
-  using TIMSK = LL::Register<LL::Access::wr, timsk>;
+  using TIMSK = LL::Register<LL::Access::wr, addr::timsk0>;
   using TOIE  = TIMSK::template Bit<0>;
   using OCIEA = TIMSK::template Bit<1>;
   using OCIEB = TIMSK::template Bit<2>;
 
-  using TIFR  = LL::Register<LL::Access::wr, tifr>;
+  using TIFR  = LL::Register<LL::Access::wr, addr::tifr0>;
   using TOV   = TIFR::template Bit<0>;
   using OCFA  = TIFR::template Bit<1>;
   using OCFB  = TIFR::template Bit<2>;
@@ -104,11 +82,15 @@ public:
       const LL::BitSet<3> wgm = WGM::Normal, 
       const LL::BitSet<3> cs = CS::Clk){
 
-    using tccra = TCCRA::template Bit<coma1, coma0, comb1, comb0, wgm1, wgm0>;
-    using tccrb = TCCRB::template Bit<wgm2, cs2, cs1, cs0>;
+    auto ta = LL::RegSet<addr::tccr0a>();
+    auto tb = LL::RegSet<addr::tccr0b>();
+    ta.write<bit::coma1, bit::coma1>(oca);
+    ta.write<bit::comb1, bit::comb1>(ocb);
 
-    tccra::wwrite(oca +  ocb + LL::BitSet<2>(wgm0));
-    tccrb::wwrite(LL::BitSet<1>(wgm,2) + cs); 
+    ta.write<bit::wgm1, bit::wgm0>(wgm);
+    tb.write<bit::wgm2>(wgm>>2);
+
+    tb.write<bit::cs2, bit::cs1, bit::cs0>(cs);
   }
 
   AlwayInline static void setCompareA(uint8_t value){

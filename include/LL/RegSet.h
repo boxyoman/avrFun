@@ -21,6 +21,7 @@ class RegSet {
   }
 
   T Data;
+  bool wasFlushed = false;
   using reg = Register<Access::wr, addr>;
 public:
   AlwayInline RegSet (){
@@ -34,10 +35,12 @@ public:
 
   AlwayInline void flush(){
     reg::wwrite(Data);
+    wasFlushed = true;
   }
   
   AlwayInline ~RegSet (){
-    reg::wwrite(Data);
+    if(!wasFlushed)
+      reg::wwrite(Data);
   }
 
 };

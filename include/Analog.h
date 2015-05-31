@@ -4,9 +4,9 @@
 #include "PowerManager.h"
 #include "Pin.h"
 #include "LL/RegSet.h"
+#include "avr/addresses.h"
 
 namespace Arduino{
-
 
 namespace ADRefs{
   using T = LL::BitSet<2>;
@@ -14,6 +14,7 @@ namespace ADRefs{
   constexpr auto AVcc     = T(1);
   constexpr auto Internal = T(3);
 }
+
 namespace ADPrescale{
   using T = LL::BitSet<3>;
   constexpr auto P2   = T(1);
@@ -26,55 +27,32 @@ namespace ADPrescale{
 }
 
 class Analog {
-  enum{
-    adcl   = 0x78,
-    adch   = 0x79,
-    adcsra = 0x7a,
-    adcsrb = 0x7b,
-    admux  = 0x7c,
-    didr0  = 0x7e,
-    acsr   = 0x50,
-  };
-
-  enum{
-#define ADPS 2,1,0
-    ADIE = 3,
-    ADIF,
-    ADATE,
-    ADSC,
-    ADEN,
-  };
+  using addr = avr::addr;
+  using bit = avr::bits::adc;
 
   //useful registers
-  using ADMUX = LL::Register<LL::Access::wr, admux>;
+  using ADMUX = LL::Register<LL::Access::wr, addr::admux>;
   using MUX = typename ADMUX::template Bit<3,2,1,0>;
 
-  using ADCSRAReg = LL::Register<LL::Access::wr, adcsra>;
-  //using ADEN = typename ADCSRA::template Bit<7>;
-  using ADSCReg = typename ADCSRAReg::template Bit<6>;
-  //using ADATE = typename ADCSRA::template Bit<5>;
-  using ADIFReg = typename ADCSRAReg::template Bit<4>;
-  //using ADIE = typename ADCSRA::template Bit<3>;
-  //using ADPS = typename ADCSRA::template Bit<2,1,0>;
+  using ADCSRAReg = LL::Register<LL::Access::wr, addr::adcsra>;
+  using ADEN    = typename ADCSRAReg::template Bit<bit::aden>;
+  using ADSCReg = typename ADCSRAReg::template Bit<bit::adsc>;
+  using ADATE   = typename ADCSRAReg::template Bit<bit::adate>;
+  using ADIFReg = typename ADCSRAReg::template Bit<bit::adif>;
+  using ADIE    = typename ADCSRAReg::template Bit<bit::adie>;
+  using ADPS    = typename ADCSRAReg::template Bit<bit::adps2,bit::adps1,
+        bit::adps0>;
 
-  using Data = LL::Register<LL::Access::wr, adcl, 0, 16, uint16_t>;
-  using ADCL = LL::Register<LL::Access::wr, adcl>;
-  using ADCH = LL::Register<LL::Access::wr, adch>;
+  using Data = LL::Register<LL::Access::wr, addr::adcl, 0, 16, uint16_t>;
+  using ADCL = LL::Register<LL::Access::wr, addr::adcl>;
+  using ADCH = LL::Register<LL::Access::wr, addr::adch>;
 
-  using ADCSRB = LL::Register<LL::Access::wr, adcsrb>;
+  using ADCSRB = LL::Register<LL::Access::wr, addr::adcsrb>;
   using ACME = typename ADCSRB::template Bit<6>;
   using ADTS = typename ADCSRB::template Bit<2,1,0>;
 
-  using DIDR0 = LL::Register<LL::Access::wr, didr0>;
-  using ADC0D = typename DIDR0::template Bit<0>;
-  using ADC1D = typename DIDR0::template Bit<1>;
-  using ADC2D = typename DIDR0::template Bit<2>;
-  using ADC3D = typename DIDR0::template Bit<3>;
-  using ADC4D = typename DIDR0::template Bit<4>;
-  using ADC5D = typename DIDR0::template Bit<5>;
+  using DIDR0 = LL::Register<LL::Access::wr, addr::didr0>;
 
-  using ACSR = LL::Register<LL::Access::wr, acsr>;
-  using ACD = ACSR::template Bit<7>;
 public:
   
   //initialize ADC
@@ -83,8 +61,8 @@ public:
       bool autoReload = false){
 
     //Define some variables
-    auto ADCSRA = LL::RegSet<adcsra>();
-    auto mux = LL::RegSet<admux>();
+    auto ADCSRA = LL::RegSet<addr::adcsra>();
+    auto mux = LL::RegSet<addr::admux>();
 
     //Turn on ADC
     PowerManager::turnOnAdc();
@@ -95,10 +73,11 @@ public:
     mux.write<5>(alignLeft);
 
     //Enble ADC
-    ADCSRA.write<ADEN>(1);
-    ADCSRA.write<ADATE>(autoReload);
+    ADCSRA.write<bit::aden>(1);
+    ADCSRA.write<bit::adate>(autoReload);
     //set prescale
-    ADCSRA.write<ADPS>(ADPrescale::P128);
+    ADCSRA.write<bit::adps2,bit::adps1,bit::adps0>(ADPrescale::P128);
+
   }
 
   AlwayInline static void init(bool alignLeft,
@@ -112,7 +91,7 @@ public:
   template<unsigned pin>
   AlwayInline static void setToADC(){
     constexpr auto actPin = analogPin<pin>::muxValue;
-    auto didr = LL::RegSet<didr0>();
+    auto didr = LL::RegSet<addr::didr0>();
     didr.write<actPin>(1);
   }
 

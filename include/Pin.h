@@ -1,5 +1,6 @@
 #pragma once
 #include "LL/Register.h"
+#include "avr/addresses.h"
 
 namespace Arduino{
 
@@ -13,23 +14,12 @@ enum class PinTypes{
 template<uint8_t pin>
 struct digitalPin{
   static_assert(pin <= 13, "Not a valid pin");
-  
-  //AVR port addresses
-  enum class PortX : uint8_t{
-    B = 0x25,
-    D = 0x2b,
-  };
+  using addr = avr::addr;
 
-  //AVR DDR addresses
-  enum class DDRx : uint8_t{
-    B = 0x24,
-    D = 0x2a,
-  };
-
-  static constexpr auto port = uint8_t((pin < 7)? PortX::D : PortX::B);
+  static constexpr auto port = (pin < 7)? addr::portd : addr::portb;
   static constexpr auto mask = (pin < 7)? 1<<pin : 1<<(pin-8);
   static constexpr auto bit  = (pin < 7)? pin : pin-8;
-  static constexpr auto ddr  = uint8_t((pin < 7)? DDRx::D : DDRx::B);
+  static constexpr auto ddr  = (pin < 7)? addr::ddrd : addr::ddrb;
 
   using Port = LL::Register<LL::Access::wr, port>;
   using PortBit = typename Port::template Bit<bit>;
