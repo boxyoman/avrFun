@@ -10,8 +10,8 @@ namespace Arduino{
 
 namespace ADRefs{
   using T = LL::BitSet<2>;
-  constexpr auto Vref = T(0);
-  constexpr auto External = T(1);
+  constexpr auto Aref     = T(0);
+  constexpr auto AVcc     = T(1);
   constexpr auto Internal = T(3);
 }
 namespace ADPrescale{
@@ -78,38 +78,34 @@ class Analog {
 public:
   
   //initialize ADC
-  AlwayInline static void init(const ADRefs::T ref = ADRefs::Vref, 
-      const ADPrescale::T prescale = ADPrescale::P2,
-      bool alignLeft = false){
+  AlwayInline static void init(const ADRefs::T ref = ADRefs::AVcc, 
+      bool alignLeft = false,
+      bool autoReload = false){
+
+    //Define some variables
+    auto ADCSRA = LL::RegSet<adcsra>();
+    auto mux = LL::RegSet<admux>();
 
     //Turn on ADC
     PowerManager::turnOnAdc();
 
     //Set Ref voltage 
-    auto test = LL::RegSet<admux>();
-    test.write<7,6>(ref);
+    mux.write<7,6>(ref);
     //set alignment
-    test.write<5>(alignLeft);
+    mux.write<5>(alignLeft);
 
     //Enble ADC
-    auto ADCSRA = LL::RegSet<adcsra>();
     ADCSRA.write<ADEN>(1);
+    ADCSRA.write<ADATE>(autoReload);
     //set prescale
-    ADCSRA.write<ADPS>(prescale);
-  }
-
-  AlwayInline static void init(
-      const ADPrescale::T prescale,
-      const ADRefs::T ref = ADRefs::Vref, 
-      bool alignLeft = false){
-    init(ref, prescale, alignLeft);
+    ADCSRA.write<ADPS>(ADPrescale::P128);
   }
 
   AlwayInline static void init(bool alignLeft,
-      const ADPrescale::T prescale = ADPrescale::P2,
-      const ADRefs::T ref = ADRefs::Vref 
+      const bool autoReload = false,
+      const ADRefs::T ref = ADRefs::AVcc 
       ){
-    init(ref, prescale, alignLeft);
+    init(ref, alignLeft, autoReload);
   }
 
   //Set pin to an adc input
@@ -120,15 +116,18 @@ public:
     didr.write<actPin>(1);
   }
 
+  AlwayInline static void start(){
+    ADSCReg::write(1);
+  }
+
   //Read the output 
   //use when left align is true
   template<unsigned pin>
   AlwayInline static uint8_t read8(){
     constexpr auto actPin = analogPin<pin>::muxValue;
     MUX::write(LL::BitSet<4>(actPin));
-    ADSCReg::write(1);
     while(!ADIFReg::testAndSet()); //wait for conversion to be done
-    ADCL::read();
+    
     return ADCH::read();
   }
 
@@ -138,7 +137,6 @@ public:
   AlwayInline static uint16_t read(){
     constexpr auto actPin = analogPin<pin>::muxValue;
     MUX::write(LL::BitSet<4>(actPin));
-    ADSCReg::write(1);
     while(!ADIFReg::testAndSet()); //wait for conversion to be done
     
     return Data::read();

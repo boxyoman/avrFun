@@ -209,7 +209,7 @@ public:
       Register::wwrite(value);
     }
     
-    AlwayInline static const BitSet<size> read(){
+    AlwayInline static BitSet<size> read(){
       auto value = Register::read();
       value = getReadValue(value);     
       return BitSet<size>(value);

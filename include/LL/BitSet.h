@@ -17,6 +17,25 @@ class BitSet{
 public:
   const std::size_t Size = N;
 
+  class Reference {
+  public:
+    AlwayInline Reference (T &a, const std::size_t I) : data(a), i(I) {}
+
+    AlwayInline Reference& operator= (bool value){
+      data = (data & ~(0<<i)) | (value<<i);
+      return *this;
+    }
+
+    AlwayInline operator bool(){
+      return (data>>i)&1;
+    }
+  
+  private:
+    T &data;
+    std::size_t i;
+    /* data */
+  };
+
   AlwayInline constexpr BitSet(unsigned long long val) :  bits((T)val) {}
 
   template<std::size_t n>
@@ -26,6 +45,10 @@ public:
 
   AlwayInline constexpr bool operator [](std::size_t i) const{
     return (bits>>i) & 1;
+  }
+
+  AlwayInline auto operator[](std::size_t i){
+    return Reference(bits, i);
   }
 
   AlwayInline constexpr BitSet<N> operator >>(std::size_t i) const{

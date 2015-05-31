@@ -31,6 +31,10 @@ public:
   AlwayInline void write(LL::BitSet<sizeof...(bits)> value){
     writeToData<bits...>(value);
   }
+
+  AlwayInline void flush(){
+    reg::wwrite(Data);
+  }
   
   AlwayInline ~RegSet (){
     reg::wwrite(Data);

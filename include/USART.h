@@ -78,14 +78,14 @@ public:
     UCSZn2::write(ucsz>>2);
   } 
 
-  static void write(const char* str){
+  NeverInline static void write(const char* str){
     do{
       put(*str);
     }while(*(++str) != '\0');
   }
 
   template<typename T>
-  static void writeNum(T number){
+  NeverInline static void writeNum(T number){
     static_assert(std::numeric_limits<T>::is_integer, 
         "type is not an integer");
 
