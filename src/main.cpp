@@ -2,16 +2,17 @@
 #include "Timer0.h"
 #include "Analog.h"
 #include "USART.h"
-#include "LL/RegSet.h"
-#include "avr/addresses.h"
+//#include "LL/RegSet.h"
+//#include "avr/addresses.h"
+//#include "LL/Access.h"
 
-using namespace Arduino;
 
 int main(int argc, char *argv[]){
+  using namespace Arduino;
 
   Timer0::setCompareA(0x80);
   Timer0::setup(OC::Set, OC::Normal, WGM::Fast, CS::Clk8);
-  Timer0::OcADdr::write(Output);
+  Timer0::OcADdr::wwrite(Output);
   Timer0::turnOn();
 
   USART::setup(9600);
@@ -26,5 +27,4 @@ int main(int argc, char *argv[]){
   }
 
   while(1);
-  return 0;
 }

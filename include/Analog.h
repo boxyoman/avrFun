@@ -9,14 +9,19 @@
 namespace Arduino{
 
 namespace ADRefs{
-  using T = LL::BitSet<2>;
+  //Allows for easy type checking
+  struct T : LL::BitSet<2>{
+    using LL::BitSet<2>::BitSet;
+  };
   constexpr auto Aref     = T(0);
   constexpr auto AVcc     = T(1);
   constexpr auto Internal = T(3);
 }
 
 namespace ADPrescale{
-  using T = LL::BitSet<3>;
+  struct T : LL::BitSet<3>{
+    using LL::BitSet<3>::BitSet;
+  };
   constexpr auto P2   = T(1);
   constexpr auto P4   = T(2);
   constexpr auto P8   = T(3);

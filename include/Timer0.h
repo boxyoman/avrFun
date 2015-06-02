@@ -82,10 +82,10 @@ public:
       const LL::BitSet<3> wgm = WGM::Normal, 
       const LL::BitSet<3> cs = CS::Clk){
 
-    auto ta = LL::RegSet<addr::tccr0a>();
-    auto tb = LL::RegSet<addr::tccr0b>();
-    ta.write<bit::coma1, bit::coma1>(oca);
-    ta.write<bit::comb1, bit::comb1>(ocb);
+    auto ta = LL::RegSet<addr::tccr0a, false>();
+    auto tb = LL::RegSet<addr::tccr0b, false>();
+    ta.write<bit::coma1, bit::coma0>(oca);
+    ta.write<bit::comb1, bit::comb0>(ocb);
 
     ta.write<bit::wgm1, bit::wgm0>(wgm);
     tb.write<bit::wgm2>(wgm>>2);
@@ -94,10 +94,10 @@ public:
   }
 
   AlwayInline static void setCompareA(uint8_t value){
-    OCRA::write(value);
+    OCRA::wwrite(value);
   }
   AlwayInline static void setCompareB(uint8_t value){
-    OCRB::write(value);
+    OCRB::wwrite(value);
   }
 
 };

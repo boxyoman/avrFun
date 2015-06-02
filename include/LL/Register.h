@@ -55,9 +55,9 @@ enum class Access {
 };
 
 template<Access mut_t, 
-  unsigned int addr, 
-  unsigned int offset = 0, 
-  unsigned int width = std::numeric_limits<Device::Word>::digits, 
+  std::size_t addr, 
+  std::size_t offset = 0, 
+  std::size_t width = std::numeric_limits<Device::Word>::digits, 
   typename T = Device::Word
   >
 class Register {
@@ -67,6 +67,7 @@ class Register {
     return (width>=deviceWidth)? ~0 : ((1 << width) - 1) << offset;
   }
   static constexpr T mask = generate_mask();
+
 public:
 
   static_assert(!std::numeric_limits<T>::is_signed, "Needs to be unsigned");
@@ -82,7 +83,7 @@ public:
     return (*device & mask) >> offset;
   }
 
-  AlwayInline static void write(T val){
+  AlwayInline static void write(LL::BitSet<deviceWidth> val){
     static_assert(mut_t != Access::ro, "Read only register");
     if(mut_t == Access::rw)
       rwrite(val);
@@ -91,18 +92,20 @@ public:
   }
   
   //Called when writing has both read and write access
-  AlwayInline static void rwrite(T value){
+  AlwayInline static void rwrite(LL::BitSet<deviceWidth> bits){
     static_assert(mut_t != Access::ro, 
         "Trying to write to a readonly register");
+    auto value = bits.getValue();
     reg_t device = reinterpret_cast<reg_t>(addr);
     *device = (*device & ~mask) | ((value << offset) & mask);
   }
 
   //Called when writing has only write access
-  AlwayInline static void wwrite(T value){
+  AlwayInline static void wwrite(LL::BitSet<deviceWidth> bits){
     static_assert(mut_t != Access::ro, 
         "Trying to write to a readonly register");
     reg_t device = reinterpret_cast<reg_t>(addr);
+    auto value = bits.getValue();
     *device = (value & mask) << offset;
   }
 
@@ -114,7 +117,7 @@ public:
         "Width must be width of register when using Bit");
 
     static constexpr auto size = sizeof...(bits);
-    static constexpr auto bitArray = LL::array<unsigned int, size>{bits...};
+    static constexpr auto bitArray = LL::array<unsigned int, size>{{bits...}};
 
     //Generates Mask for reading 
     template<unsigned int pos1, unsigned int... others>
@@ -135,7 +138,7 @@ public:
       return (1&first)<<inBit::Value 
         | getWriteValue<typename inBit::Next>(values...);
     };
-    template<typename inPins>
+    template<typename inBit>
     AlwayInline static T getWriteValue(){
       return 0;
     }
@@ -152,6 +155,8 @@ public:
     AlwayInline static T getReadValue(const T value){
       T result = 0;
       for (unsigned int i = 0; i < size; ++i){
+        //For the future after you move eveerything over to BitSet
+        //auto bit = bitArray[(size-1)-i];
         result |= ((value>>bitArray[(size-1)-i])&1)<<i;
       }
       return result;
