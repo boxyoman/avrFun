@@ -27,10 +27,10 @@ class USART {
   };//Addresses
 
   using UDRn   = LL::Register<LL::Access::wr, udrn, 0, 16, uint16_t>;
-  using RXB = LL::Register<LL::Access::rw, udrn+1>;
-  using TXB = LL::Register<LL::Access::rw, udrn>;
+  using RXB = LL::Reg< udrn+1, LL::Access::rw>;
+  using TXB = LL::Reg< udrn, LL::Access::rw>;
 
-  using UCSRnA = LL::Register<LL::Access::wr, ucsrna>;
+  using UCSRnA = LL::Reg< ucsrna, LL::Access::wr>;
   using RXCn   = UCSRnA::template Bit<7>;
   using TXCn   = UCSRnA::template Bit<6>;
   using UDREn  = UCSRnA::template Bit<5>;
@@ -40,14 +40,14 @@ class USART {
   using U2Xn   = UCSRnA::template Bit<1>;
   using MPCMn  = UCSRnA::template Bit<0>;
 
-  using UCSRnB = LL::Register<LL::Access::wr, ucsrnb>;
+  using UCSRnB = LL::Reg< ucsrnb, LL::Access::wr>;
   using RXENn  = UCSRnB::template Bit<4>;
   using TXENn  = UCSRnB::template Bit<3>;
   using UCSZn2 = UCSRnB::template Bit<2>;
   using RXB8n  = UCSRnB::template Bit<1>;
   using TXB8n  = UCSRnB::template Bit<0>;
 
-  using UCSRnC = LL::Register<LL::Access::wr, ucsrnc>;
+  using UCSRnC = LL::Reg< ucsrnc, LL::Access::wr>;
   using UMSELn = UCSRnC::template Bit<7,6>;
   using UPMn   = UCSRnC::template Bit<5,4>;
   using USBSn  = UCSRnC::template Bit<3>;

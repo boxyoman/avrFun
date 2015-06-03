@@ -43,11 +43,11 @@ namespace LL{
 
 template<
   std::size_t addr, 
-  typename mut_t = Access::rw, 
-  std::size_t width = std::numeric_limits<Device::Word>::digits, 
-  std::size_t offset = 0, 
-  typename T = Device::Word
-  >
+  typename T = Device::Word,
+  typename mut_t = Access::rw, //TODO: use a contrainer 
+  std::size_t width = std::numeric_limits<T>::digits, 
+  std::size_t offset = 0 
+>
 class Reg {
   using reg_t = volatile T*;
   static constexpr unsigned int size = std::numeric_limits<T>::digits;

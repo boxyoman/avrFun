@@ -36,17 +36,13 @@ class Analog {
   using bit = avr::bits::adc;
 
   //useful registers
-  using ADMUX = LL::Reg<addr::admux, LL::Access::wr>;
-
-  using ADCSRA = LL::Reg<addr::adcsra, LL::Access::wr>;
-  using ADCSRB = LL::Reg<addr::adcsrb, LL::Access::wr>;
-
-  using Data = LL::Reg<addr::adcl,LL::Access::wr, 16, 0, uint16_t>;
-  using ADCL = LL::Reg<addr::adcl, LL::Access::wr>;
-  using ADCH = LL::Reg<addr::adch, LL::Access::wr>;
-
-
-  using DIDR0 = LL::Reg<addr::didr0, LL::Access::wr>;
+  using ADMUX  = LL::Reg<addr::admux>;
+  using ADCSRA = LL::Reg<addr::adcsra>;
+  using ADCSRB = LL::Reg<addr::adcsrb>;
+  using Data   = LL::Reg<addr::adcl, uint16_t>;
+  using ADCL   = LL::Reg<addr::adcl>;
+  using ADCH   = LL::Reg<addr::adch>;
+  using DIDR0  = LL::Reg<addr::didr0>;
 
 public:
   

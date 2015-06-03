@@ -18,6 +18,18 @@ struct addr{
   }; //Timer0
 
   enum{
+    tccra = 0x80,
+    tccrb,
+    tccrc,
+    tcnt  = 0x84,
+    icr   = 0x86,
+    ocra  = 0x88,
+    ocrb  = 0x8a,
+    tifr  = 0x36,
+    timsk = 0x6f,
+  }; //Timer1
+
+  enum{
     tccr2a = 0xb0,
     tccr2b,
     tcnt2,
@@ -74,8 +86,58 @@ namespace bits{
       ocfa,
       ocfb
     }; //Bit posisitions for the TIFR0 register
+  };//end of timer0
 
-  }; //end of timer0
+  struct timer1{
+    enum{
+      wgm0 = 0,
+      wgm1,
+      comb0 = 4,
+      comb1,
+      coma0,
+      coma1
+    }; //Bit positions for the TCCR0A register
+    enum{
+      cs0 = 0,
+      cs1,
+      cs2,
+      wgm2,
+      wgm3,
+      focb = 6,
+      foca,
+    }; //Bit positions for the TCCR0B register
+    enum{
+      tov,
+      ocfa,
+      ocfb,
+      icf = 5,
+    }; //Bit posisitions for the TIFR0 register
+  }; //end of timer1
+
+  struct timer2{
+    enum{
+      wgm0 = 0,
+      wgm1,
+      comb0 = 4,
+      comb1,
+      coma0,
+      coma1
+    }; //Bit positions for the TCCR0A register
+    enum{
+      cs0 = 0,
+      cs1,
+      cs2,
+      wgm2,
+      focb = 6,
+      foca,
+    }; //Bit positions for the TCCR0B register
+    enum{
+      tov,
+      ocfa,
+      ocfb
+    }; //Bit posisitions for the TIFR0 register
+  };//end of timer2
+
 
 }//end of bits
 }//end of avr

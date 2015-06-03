@@ -13,13 +13,13 @@ class Timer0 {
 
   //Probably won't even use half of these...
   //But who knows!
-  using TCCRA = LL::Reg< a::tccr0a, LL::Access::wr>;
-  using TCCRB = LL::Reg< a::tccr0b, LL::Access::wr>;
-  using TCNT  = LL::Reg< a::tcnt0, LL::Access::wr>;
-  using OCRA  = LL::Reg< a::ocr0a, LL::Access::wr>;
-  using OCRB  = LL::Reg< a::ocr0b, LL::Access::wr>;
-  using TIMSK = LL::Reg< a::timsk0, LL::Access::wr>;
-  using TIFR  = LL::Reg< a::tifr0, LL::Access::wr>;
+  using TCCRA = LL::Reg<a::tccr0a>;
+  using TCCRB = LL::Reg<a::tccr0b>;
+  using TCNT  = LL::Reg<a::tcnt0>;
+  using OCRA  = LL::Reg<a::ocr0a>;
+  using OCRB  = LL::Reg<a::ocr0b>;
+  using TIMSK = LL::Reg<a::timsk0>;
+  using TIFR  = LL::Reg<a::tifr0>;
 
   using OcADdr = digitalPin<6>::DDR;
   using OcBDdr = digitalPin<5>::DDR;

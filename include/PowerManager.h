@@ -8,8 +8,8 @@ class PowerManager {
     prrAddr  = 0x64,
   } addresses;
 
-  using SMCR = LL::Reg<smcrAddr, LL::Access::rw>;
-  using PRR  = LL::Reg<prrAddr,  LL::Access::rw>;
+  using SMCR = LL::Reg<smcrAddr>;
+  using PRR  = LL::Reg<prrAddr>;
 
 public:
   static void turnOnUSART(){

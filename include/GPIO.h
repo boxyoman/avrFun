@@ -44,12 +44,12 @@ class GPIO {
   }
 
   using port     = digitalPin<pinOne>;
-  using portxReg = LL::Register<LL::Access::rw, uint8_t(port::port)>;
+  using portxReg = LL::Reg< uint8_t(port::port), LL::Access::rw>;
 
   using portx    = typename portxReg::template Bit<port::bit,
         digitalPin<pins>::bit...>;
 
-  using ddrxReg  = LL::Register<LL::Access::rw, uint8_t(port::ddr)>;
+  using ddrxReg  = LL::Reg< uint8_t(port::ddr), LL::Access::rw>;
 
   using ddrx     = typename ddrxReg::template Bit<port::bit,
         digitalPin<pins>::bit...>;

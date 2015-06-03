@@ -1,5 +1,6 @@
 #pragma once
 #include "LL/Register.h"
+#include "LL/RegSet.h"
 #include "PowerManager.h"
 #include "Pin.h"
 #include "Timer.h"
@@ -7,68 +8,36 @@
 namespace Arduino{
 
 class Timer2 {
-  enum{
-    tccra = 0xb0,
-    tccrb,
-    tcnt,
-    ocra,
-    ocrb,
-    tifr  = 0x37,
-    timsk = 0x70,
-  };
-
-  enum{
-    wgm0 = 0,
-    wgm1,
-    comb0 = 4,
-    comb1,
-    coma0,
-    coma1
-  }; //Bit positions for the TCCR0A register
-  enum{
-    cs0 = 0,
-    cs1,
-    cs2,
-    wgm2,
-  };
+  using a = avr::addr;
+  using b = avr::bits::timer2;
 
   //Probably won't even use half of these...
   //But who knows!
-  using TCCRA = LL::Register<LL::Access::wr, tccra>;
-  using TCCRB = LL::Register<LL::Access::wr, tccrb>;
-  using FOCB  = TCCRB::template Bit<6>;
-  using FOCA  = TCCRB::template Bit<7>;
+  using TCCRA = LL::Reg<a::tccr2a>;
+  using TCCRB = LL::Reg<a::tccr2b>;
+  using TCNT  = LL::Reg<a::tcnt2>;
+  using OCRA  = LL::Reg<a::ocr2a>;
+  using OCRB  = LL::Reg<a::ocr2b>;
+  using TIMSK = LL::Reg<a::timsk2>;
+  using TIFR  = LL::Reg<a::tifr2>;
 
-  using TCNT  = LL::Register<LL::Access::wr, tcnt>;
-  using OCRA  = LL::Register<LL::Access::wr, ocra>;
-  using OCRB  = LL::Register<LL::Access::wr, ocrb>;
-
-  using TIMSK = LL::Register<LL::Access::wr, timsk>;
-  using TOIE  = TIMSK::template Bit<0>;
-  using OCIEA = TIMSK::template Bit<1>;
-  using OCIEB = TIMSK::template Bit<2>;
-
-  using TIFR  = LL::Register<LL::Access::wr, tifr>;
-  using TOV   = TIFR::template Bit<0>;
-  using OCFA  = TIFR::template Bit<1>;
-  using OCFB  = TIFR::template Bit<2>;
+  using OcADdr = digitalPin<11>::DDR;
+  using OcBDdr = digitalPin<3>::DDR;
 
 public:
-  using OcADdr = digitalPin<11>::DDRBit;
-  using OcBDdr = digitalPin<3>::DDRBit;
 
   AlwayInline static void turnOn(){
-    PowerManager::turnOnTimer2();
+    PowerManager::turnOnTimer0();
   }
   AlwayInline static void turnOff(){
-    PowerManager::turnOffTimer2();
+    PowerManager::turnOffTimer0();
   }
 
   AlwayInline static void forceA(){
-    FOCA::write(1);
+    TCCRA::write<b::foca>(1);
   }
   AlwayInline static void forceB(){
-    FOCB::write(1);
+    TCCRA::write<b::focb>(1);
   }
 
   AlwayInline static void turnOffIntr(){
@@ -80,40 +49,45 @@ public:
   }
 
   AlwayInline static bool countedOver(){
-    return TOV::testAndSet();
+    return TIFR::testAndSet<b::tov>();
   }
 
   AlwayInline static bool didMatchA(){
-    return OCFA::testAndSet();
+    return TIFR::testAndSet<b::ocfa>();
   }
+
   AlwayInline static bool didMatchB(){
-    return OCFB::testAndSet();
+    return TIFR::testAndSet<b::ocfb>();
   }
 
   AlwayInline static uint8_t getCount(){
-    return TCNT::read();
+    return TCNT::read().getValue();
   }
 
   //Set up the timer
-  //See Timer.h for options
+  //See Timer.h
   AlwayInline static void setup(const LL::BitSet<2> oca, 
       const LL::BitSet<2> ocb = OC::Normal, 
       const LL::BitSet<3> wgm = WGM::Normal, 
       const LL::BitSet<3> cs = CS::Clk){
 
-    using tccra = TCCRA::template Bit<coma1, coma0, comb1, comb0, wgm1, wgm0>;
-    using tccrb = TCCRB::template Bit<wgm2, cs2, cs1, cs0>;
+    auto ta = LL::RegSet<a::tccr0a, false>();
+    auto tb = LL::RegSet<a::tccr0b, false>();
+    ta.write<b::coma1, b::coma0>(oca);
+    ta.write<b::comb1, b::comb0>(ocb);
 
-    tccra::wwrite(oca +  ocb + LL::BitSet<2>(wgm));
-    tccrb::wwrite(LL::BitSet<1>(wgm,2) + cs); 
+    ta.write<b::wgm1, b::wgm0>(wgm);
+    tb.write<b::wgm2>(wgm>>2);
+
+    tb.write<b::cs2, b::cs1, b::cs0>(cs);
   }
 
   AlwayInline static void setCompareA(uint8_t value){
-    OCRA::write(value);
+    OCRA::wwrite(value);
   }
   AlwayInline static void setCompareB(uint8_t value){
-    OCRB::write(value);
+    OCRB::wwrite(value);
   }
 
 };
-}//end of Arduino
+}
