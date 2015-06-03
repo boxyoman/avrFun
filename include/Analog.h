@@ -36,27 +36,17 @@ class Analog {
   using bit = avr::bits::adc;
 
   //useful registers
-  using ADMUX = LL::Register<LL::Access::wr, addr::admux>;
-  using MUX = typename ADMUX::template Bit<3,2,1,0>;
+  using ADMUX = LL::Reg<addr::admux, LL::Access::wr>;
 
-  using ADCSRAReg = LL::Register<LL::Access::wr, addr::adcsra>;
-  using ADEN    = typename ADCSRAReg::template Bit<bit::aden>;
-  using ADSCReg = typename ADCSRAReg::template Bit<bit::adsc>;
-  using ADATE   = typename ADCSRAReg::template Bit<bit::adate>;
-  using ADIFReg = typename ADCSRAReg::template Bit<bit::adif>;
-  using ADIE    = typename ADCSRAReg::template Bit<bit::adie>;
-  using ADPS    = typename ADCSRAReg::template Bit<bit::adps2,bit::adps1,
-        bit::adps0>;
+  using ADCSRA = LL::Reg<addr::adcsra, LL::Access::wr>;
+  using ADCSRB = LL::Reg<addr::adcsrb, LL::Access::wr>;
 
-  using Data = LL::Register<LL::Access::wr, addr::adcl, 0, 16, uint16_t>;
-  using ADCL = LL::Register<LL::Access::wr, addr::adcl>;
-  using ADCH = LL::Register<LL::Access::wr, addr::adch>;
+  using Data = LL::Reg<addr::adcl,LL::Access::wr, 16, 0, uint16_t>;
+  using ADCL = LL::Reg<addr::adcl, LL::Access::wr>;
+  using ADCH = LL::Reg<addr::adch, LL::Access::wr>;
 
-  using ADCSRB = LL::Register<LL::Access::wr, addr::adcsrb>;
-  using ACME = typename ADCSRB::template Bit<6>;
-  using ADTS = typename ADCSRB::template Bit<2,1,0>;
 
-  using DIDR0 = LL::Register<LL::Access::wr, addr::didr0>;
+  using DIDR0 = LL::Reg<addr::didr0, LL::Access::wr>;
 
 public:
   
@@ -66,7 +56,7 @@ public:
       bool autoReload = false){
 
     //Define some variables
-    auto ADCSRA = LL::RegSet<addr::adcsra>();
+    auto Adcsra = LL::RegSet<addr::adcsra>();
     auto mux = LL::RegSet<addr::admux>();
 
     //Turn on ADC
@@ -78,10 +68,10 @@ public:
     mux.write<5>(alignLeft);
 
     //Enble ADC
-    ADCSRA.write<bit::aden>(1);
-    ADCSRA.write<bit::adate>(autoReload);
+    Adcsra.write<bit::aden>(1);
+    Adcsra.write<bit::adate>(autoReload);
     //set prescale
-    ADCSRA.write<bit::adps2,bit::adps1,bit::adps0>(ADPrescale::P128);
+    Adcsra.write<bit::adps2,bit::adps1,bit::adps0>(ADPrescale::P128);
 
   }
 
@@ -101,7 +91,7 @@ public:
   }
 
   AlwayInline static void start(){
-    ADSCReg::write(1);
+    ADCSRA::write<bit::adsc>(1);
   }
 
   //Read the output 
@@ -109,10 +99,11 @@ public:
   template<unsigned pin>
   AlwayInline static uint8_t read8(){
     constexpr auto actPin = analogPin<pin>::muxValue;
-    MUX::write(LL::BitSet<4>(actPin));
-    while(!ADIFReg::testAndSet()); //wait for conversion to be done
+    ADMUX::write<3,2,1,0>(LL::BitSet<4>(actPin));
+    while(!ADCSRA::testAndSet<bit::adif>()); 
+    //wait for conversion to be done
     
-    return ADCH::read();
+    return ADCH::read().getValue();
   }
 
   //Read the output
@@ -120,10 +111,10 @@ public:
   template<unsigned pin>
   AlwayInline static uint16_t read(){
     constexpr auto actPin = analogPin<pin>::muxValue;
-    MUX::write(LL::BitSet<4>(actPin));
-    while(!ADIFReg::testAndSet()); //wait for conversion to be done
+    ADMUX::write<3,2,1,0>(LL::BitSet<4>(actPin));
+    while(!ADCSRA::testAndSet<bit::adif>()); 
     
-    return Data::read();
+    return Data::read().getValue();
   }
 
 }; //End of Analog

@@ -8,34 +8,23 @@
 namespace Arduino{
 
 class Timer0 {
-  using addr = avr::addr;
-  using bit = avr::bits::timer0;
+  using a = avr::addr;
+  using b = avr::bits::timer0;
 
   //Probably won't even use half of these...
   //But who knows!
-  using TCCRA = LL::Register<LL::Access::wr, addr::tccr0a>;
-  using TCCRB = LL::Register<LL::Access::wr, addr::tccr0b>;
-  using FOCB  = TCCRB::template Bit<6>;
-  using FOCA  = TCCRB::template Bit<7>;
+  using TCCRA = LL::Reg< a::tccr0a, LL::Access::wr>;
+  using TCCRB = LL::Reg< a::tccr0b, LL::Access::wr>;
+  using TCNT  = LL::Reg< a::tcnt0, LL::Access::wr>;
+  using OCRA  = LL::Reg< a::ocr0a, LL::Access::wr>;
+  using OCRB  = LL::Reg< a::ocr0b, LL::Access::wr>;
+  using TIMSK = LL::Reg< a::timsk0, LL::Access::wr>;
+  using TIFR  = LL::Reg< a::tifr0, LL::Access::wr>;
 
-  using TCNT  = LL::Register<LL::Access::wr, addr::tcnt0>;
-  using OCRA  = LL::Register<LL::Access::wr, addr::ocr0a>;
-  using OCRB  = LL::Register<LL::Access::wr, addr::ocr0b>;
-
-  using TIMSK = LL::Register<LL::Access::wr, addr::timsk0>;
-  using TOIE  = TIMSK::template Bit<0>;
-  using OCIEA = TIMSK::template Bit<1>;
-  using OCIEB = TIMSK::template Bit<2>;
-
-  using TIFR  = LL::Register<LL::Access::wr, addr::tifr0>;
-  using TOV   = TIFR::template Bit<0>;
-  using OCFA  = TIFR::template Bit<1>;
-  using OCFB  = TIFR::template Bit<2>;
-
+  using OcADdr = digitalPin<6>::DDR;
+  using OcBDdr = digitalPin<5>::DDR;
 
 public:
-  using OcADdr = digitalPin<6>::DDRBit;
-  using OcBDdr = digitalPin<5>::DDRBit;
 
   AlwayInline static void turnOn(){
     PowerManager::turnOnTimer0();
@@ -45,10 +34,10 @@ public:
   }
 
   AlwayInline static void forceA(){
-    FOCA::write(1);
+    TCCRA::write<b::foca>(1);
   }
   AlwayInline static void forceB(){
-    FOCB::write(1);
+    TCCRA::write<b::focb>(1);
   }
 
   AlwayInline static void turnOffIntr(){
@@ -60,19 +49,19 @@ public:
   }
 
   AlwayInline static bool countedOver(){
-    return TOV::testAndSet();
+    return TIFR::testAndSet<b::tov>();
   }
 
   AlwayInline static bool didMatchA(){
-    return OCFA::testAndSet();
+    return TIFR::testAndSet<b::ocfa>();
   }
 
   AlwayInline static bool didMatchB(){
-    return OCIEB::testAndSet();
+    return TIFR::testAndSet<b::ocfb>();
   }
 
   AlwayInline static uint8_t getCount(){
-    return TCNT::read();
+    return TCNT::read().getValue();
   }
 
   //Set up the timer
@@ -82,15 +71,15 @@ public:
       const LL::BitSet<3> wgm = WGM::Normal, 
       const LL::BitSet<3> cs = CS::Clk){
 
-    auto ta = LL::RegSet<addr::tccr0a, false>();
-    auto tb = LL::RegSet<addr::tccr0b, false>();
-    ta.write<bit::coma1, bit::coma0>(oca);
-    ta.write<bit::comb1, bit::comb0>(ocb);
+    auto ta = LL::RegSet<a::tccr0a, false>();
+    auto tb = LL::RegSet<a::tccr0b, false>();
+    ta.write<b::coma1, b::coma0>(oca);
+    ta.write<b::comb1, b::comb0>(ocb);
 
-    ta.write<bit::wgm1, bit::wgm0>(wgm);
-    tb.write<bit::wgm2>(wgm>>2);
+    ta.write<b::wgm1, b::wgm0>(wgm);
+    tb.write<b::wgm2>(wgm>>2);
 
-    tb.write<bit::cs2, bit::cs1, bit::cs0>(cs);
+    tb.write<b::cs2, b::cs1, b::cs0>(cs);
   }
 
   AlwayInline static void setCompareA(uint8_t value){

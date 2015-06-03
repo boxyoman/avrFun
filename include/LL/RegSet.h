@@ -9,7 +9,7 @@ template<std::size_t addr, bool shouldRead = true>
 class RegSet {
   using T = Device::Word;
   static constexpr std::size_t size = std::numeric_limits<T>::digits;
-  using reg = Register<Access::wr, addr>;
+  using reg = Reg<addr, Access::wr>;
 
   template<int bit, int... others>
   AlwayInline void writeToData(LL::BitSet<sizeof...(others)+1> value){

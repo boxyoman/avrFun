@@ -21,10 +21,8 @@ struct digitalPin{
   static constexpr auto bit  = (pin < 7)? pin : pin-8;
   static constexpr auto ddr  = (pin < 7)? addr::ddrd : addr::ddrb;
 
-  using Port = LL::Register<LL::Access::wr, port>;
-  using PortBit = typename Port::template Bit<bit>;
-  using DDR = LL::Register<LL::Access::wr, ddr>;
-  using DDRBit = typename DDR::template Bit<bit>;
+  using Port = LL::Reg<port, LL::Access::wr>;
+  using DDR = LL::Reg<ddr, LL::Access::wr>;
 }; //end of Pin<Digital, pin>
 
 //Information about the Analog pins

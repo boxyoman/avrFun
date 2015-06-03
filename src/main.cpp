@@ -2,7 +2,7 @@
 #include "avr/addresses.h"
 
 int main(int argc, char *argv[]){
-  using portb = LL::reg<avr::addr::portb>;
-  portb::write(1<<5);
+  using portb = LL::Reg<avr::addr::portb>;
+  portb::write<5>(1);
   while(1);
 }

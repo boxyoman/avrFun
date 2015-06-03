@@ -54,21 +54,11 @@ namespace LL{
       static void write(LL::BitSet<size<T>> value){
         reg_t<T> device = reinterpret_cast<reg_t<T>>(addr);
 
-        auto readValue = read<addr, 0, size<T>(), T>();
-        auto writeValue = (readValue & ~(value.mask<<offset)) | value<<offset;
-        *device = writeValue.getValue();
-      }
-
-    private:
-      template<typename T = Device::Word, 
-        std::size_t s = size<T>()>
-      auto getWriteValue(BitSet<s> readValue, BitSet<s> value, 
-          std::size_t offset ){
-
-        for (int i = 0; i < s; ++i){
-          readValue[i+offset] = value[i];
+        auto regVal = read<addr, 0, size<T>(), T>();
+        for (int i = 0; i < size<T>(); ++i){
+          regVal[i+offset] = value[i];
         }
-        return readValue;
+        *device = regVal.getValue();
       }
     };
 

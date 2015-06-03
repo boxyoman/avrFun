@@ -66,7 +66,14 @@ namespace bits{
       cs1,
       cs2,
       wgm2,
+      focb = 6,
+      foca,
     }; //Bit positions for the TCCR0B register
+    enum{
+      tov,
+      ocfa,
+      ocfb
+    }; //Bit posisitions for the TIFR0 register
 
   }; //end of timer0
 

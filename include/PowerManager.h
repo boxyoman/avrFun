@@ -5,53 +5,45 @@ namespace Arduino {
 class PowerManager {
   enum {
     smcrAddr = 0x53,
-    prrAddr = 0x64,
+    prrAddr  = 0x64,
   } addresses;
 
-  using SMCR     = LL::Register<LL::Access::rw, smcrAddr>;
-
-  using PRR      = LL::Register<LL::Access::rw, prrAddr>;
-  using PRADC    = PRR::template Bit<0>;
-  using PRUSART0 = PRR::template Bit<1>;
-  using PRSPI    = PRR::template Bit<2>;
-  using PRTIM1   = PRR::template Bit<3>;
-  using PRTIM0   = PRR::template Bit<5>;
-  using PRTIM2   = PRR::template Bit<6>;
-  using PRTWI    = PRR::template Bit<7>;
+  using SMCR = LL::Reg<smcrAddr, LL::Access::rw>;
+  using PRR  = LL::Reg<prrAddr,  LL::Access::rw>;
 
 public:
   static void turnOnUSART(){
-    PRUSART0::write(0);
+    PRR::write<1>(0);
   }
   static void turnOffUSART(){
-    PRUSART0::write(1);
+    PRR::write<1>(1);
   }
 
   static void turnOnTimer0(){
-    PRTIM0::write(0);
+    PRR::write<5>(0);
   }
   static void turnOffTimer0(){
-    PRTIM0::write(1);
+    PRR::write<5>(1);
   }
 
   static void turnOnTimer1(){
-    PRTIM1::write(0);
+    PRR::write<3>(0);
   }
   static void turnOffTimer1(){
-    PRTIM1::write(1);
+    PRR::write<3>(1);
   }
 
   static void turnOnTimer2(){
-    PRTIM2::write(0);
+    PRR::write<6>(0);
   }
   static void turnOffTimer2(){
-    PRTIM2::write(1);
+    PRR::write<6>(1);
   }
   static void turnOnAdc(){
-    PRADC::write(0);
+    PRR::write<0>(0);
   }
   static void turnOffAdc(){
-    PRADC::write(1);
+    PRR::write<0>(1);
   }
 };
 
