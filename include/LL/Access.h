@@ -20,7 +20,7 @@ namespace LL{
 
     //For C++14
     //template<typename T>
-    //constexpr auto size std::numeric_limits<T>::digits; 
+    //constexpr auto size = std::numeric_limits<T>::digits; 
     
     //Register is read only
     struct ro{
@@ -36,10 +36,11 @@ namespace LL{
     struct wo{
       template<std::size_t addr, std::size_t offset, std::size_t width, 
         typename T = Device::Word>
-      static void wwrite(LL::BitSet<width> value){
+      static void wwrite(LL::BitSet<size<T>()> value){
         reg_t<T> device = reinterpret_cast<reg_t<T>>(addr);
         *device = (value<<offset).getValue();
       }
+
       template<std::size_t addr, std::size_t offset, std::size_t width, 
         typename T = Device::Word>
       static void write(LL::BitSet<width> value){
@@ -51,11 +52,11 @@ namespace LL{
     struct wr: public ro, public wo{
       template<std::size_t addr, std::size_t offset, std::size_t width, 
         typename T = Device::Word>
-      static void write(LL::BitSet<size<T>> value){
+      static void write(LL::BitSet<size<T>()> value){
         reg_t<T> device = reinterpret_cast<reg_t<T>>(addr);
 
         auto regVal = read<addr, 0, size<T>(), T>();
-        for (int i = 0; i < size<T>(); ++i){
+        for (std::size_t i = 0; i < width; ++i){
           regVal[i+offset] = value[i];
         }
         *device = regVal.getValue();

@@ -24,10 +24,6 @@ class BitSet{
 
   T bits;
 
-public:
-  const std::size_t Size = N;
-  static constexpr T mask = generateMask();
-
   class Reference {
     T &data;
     std::size_t i;
@@ -35,6 +31,9 @@ public:
   public:
     AlwayInline Reference (T &a, const std::size_t I) : data(a), i(I) {}
 
+    void operator= (const Reference& a) {
+      data = (data & ~(0<<i)) | ( ((a.data>>a.i) & 1)<<i );
+    }
     AlwayInline Reference& operator= (bool value){
       data = (data & ~(0<<i)) | (value<<i);
       return *this;
@@ -43,7 +42,10 @@ public:
     AlwayInline operator bool(){
       return (data>>i)&1;
     }
-  };
+  };//end of Reference
+public:
+  const std::size_t Size = N;
+  static constexpr T mask = generateMask();
 
   AlwayInline constexpr BitSet() : bits(0) {}
   AlwayInline constexpr BitSet(unsigned long long val) :  bits(mask&val) {}

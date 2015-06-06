@@ -68,7 +68,7 @@ public:
   template<int... bits>
   AlwayInline static void write(LL::BitSet<width> val){
     //TODO: write a better assert message
-    static_assert((sizeof...(bits) > 0 & width == size) | 
+    static_assert((sizeof...(bits) > 0 && width == size) | 
         (sizeof...(bits) == 0), "Error"); 
 
     if(sizeof...(bits) == 0){
@@ -76,7 +76,7 @@ public:
     }else{
       array<std::size_t, sizeof...(bits)> bit = {bits...};
       auto writeValue = BitSet<size>();
-      for (int i = 0; i < sizeof...(bits); ++i){
+      for (std::size_t i = 0; i < sizeof...(bits); ++i){
         writeValue[bit[i]] = val[i];
       }
       mut_t::template write<addr, offset, width, T>(writeValue);
@@ -94,7 +94,7 @@ public:
     }else{
       array<std::size_t, sizeof...(bits)> bit = {bits...};
       auto writeValue = BitSet<size>();
-      for (int i = 0; i < sizeof...(bits); ++i){
+      for (std::size_t i = 0; i < sizeof...(bits); ++i){
         writeValue[bit[i]] = val[i];
       }
       mut_t::template wwrite<addr, offset, width, T>(writeValue);
