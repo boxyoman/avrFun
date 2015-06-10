@@ -4,6 +4,7 @@
 #include "BitSet.h"
 #include "Device.h"
 #include <limits>
+#include "config.h"
 
 namespace LL{
   namespace Access{
@@ -26,9 +27,9 @@ namespace LL{
     struct ro{
       template<std::size_t addr, std::size_t offset, std::size_t width, 
         typename T = Device::Word>
-      static BitSet<width> read(){
+      AlwayInline static BitSet<width> read(){
         reg_t<T> device = reinterpret_cast<reg_t<T>>(addr);
-        return BitSet<width>(*device)>>offset;
+        return BitSet<width>(*device>>offset);
       }
     };
 
@@ -36,31 +37,34 @@ namespace LL{
     struct wo{
       template<std::size_t addr, std::size_t offset, std::size_t width, 
         typename T = Device::Word>
-      static void wwrite(LL::BitSet<size<T>()> value){
+      AlwayInline static void wwrite(LL::BitSet<size<T>()> value){
         reg_t<T> device = reinterpret_cast<reg_t<T>>(addr);
         *device = (value<<offset).getValue();
       }
 
       template<std::size_t addr, std::size_t offset, std::size_t width, 
         typename T = Device::Word>
-      static void write(LL::BitSet<width> value){
+      AlwayInline static void write(LL::BitSet<width> value){
         wwrite<addr, offset, width, T>(value);
       }
     };
 
     // Register has read and write access
     struct wr: public ro, public wo{
+
       template<std::size_t addr, std::size_t offset, std::size_t width, 
         typename T = Device::Word>
-      static void write(LL::BitSet<size<T>()> value){
-        reg_t<T> device = reinterpret_cast<reg_t<T>>(addr);
+      AlwayInline static void write(LL::BitSet<size<T>()> value){
 
+        reg_t<T> device = reinterpret_cast<reg_t<T>>(addr);
+        
         auto regVal = read<addr, 0, size<T>(), T>();
         for (std::size_t i = 0; i < width; ++i){
           regVal[i+offset] = value[i];
         }
         *device = regVal.getValue();
       }
+
     };
 
     struct rw: public wr{};

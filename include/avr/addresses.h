@@ -18,15 +18,15 @@ struct addr{
   }; //Timer0
 
   enum{
-    tccra = 0x80,
-    tccrb,
-    tccrc,
-    tcnt  = 0x84,
-    icr   = 0x86,
-    ocra  = 0x88,
-    ocrb  = 0x8a,
-    tifr  = 0x36,
-    timsk = 0x6f,
+    tccra1 = 0x80,
+    tccrb1,
+    tccrc1,
+    tcnt1  = 0x84,
+    icr1   = 0x86,
+    ocra1  = 0x88,
+    ocrb1  = 0x8a,
+    tifr1  = 0x36,
+    timsk1 = 0x6f,
   }; //Timer1
 
   enum{

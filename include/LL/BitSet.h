@@ -2,17 +2,17 @@
 #include <stdint.h>
 #include <cstddef>
 #include <limits>
+#include "BitTypes.h"
 #include "config.h"
 #include "templateList.h"
 
 namespace LL{
 
-
 //Can only do up to 16 bits for now
 template<std::size_t N>
 class BitSet{
   //TODO: Replace with dynamic sizing
-  using T = std::size_t;
+  using T = typename bitType<N>::type;
   static constexpr auto width = std::numeric_limits<T>::digits;
 
   static_assert(N <= width, 
@@ -31,11 +31,11 @@ class BitSet{
   public:
     AlwayInline Reference (T &a, const std::size_t I) : data(a), i(I) {}
 
-    void operator= (const Reference& a) {
-      data = (data & ~(0<<i)) | ( ((a.data>>a.i) & 1)<<i );
+    AlwayInline void operator= (const Reference& a) {
+      data = (data & ~(1<<i)) | ( ((a.data>>a.i) & 1)<<i );
     }
     AlwayInline Reference& operator= (bool value){
-      data = (data & ~(0<<i)) | (value<<i);
+      data = (data & ~(1<<i)) | (value<<i);
       return *this;
     }
 
@@ -57,6 +57,11 @@ public:
 
   AlwayInline constexpr bool operator [](std::size_t i) const{
     return (bits>>i) & 1;
+  }
+
+  AlwayInline auto set(){
+    bits = mask;
+    return *this;
   }
 
   AlwayInline auto operator[](std::size_t i){

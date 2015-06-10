@@ -53,16 +53,15 @@ class Timer1 {
 
   //Probably won't even use half of these...
   //But who knows!
-  using TCCRA = LL::Reg<a::tccra>;
-  using TCCRB = LL::Reg<a::tccrb>;
-  using TCCRC = LL::Reg<a::tccrc>;
-
-  using TCNT = LL::Reg<a::tcnt, uint16_t>;
-  using OCRA = LL::Reg<a::ocra, uint16_t>;
-  using OCRB = LL::Reg<a::ocrb, uint16_t>;
-  using ICR  = LL::Reg<a::icr,  uint16_t>;
-  using TIMSK = LL::Reg<a::timsk>;
-  using TIFR  = LL::Reg<a::tifr>;
+  using TCCRA = LL::Reg<a::tccra1>;
+  using TCCRB = LL::Reg<a::tccrb1>;
+  using TCCRC = LL::Reg<a::tccrc1>;
+  using TCNT = LL::Reg<a::tcnt1, 16>;
+  using OCRA = LL::Reg<a::ocra1, 16>;
+  using OCRB = LL::Reg<a::ocrb1, 16>;
+  using ICR  = LL::Reg<a::icr1,  16>;
+  using TIMSK = LL::Reg<a::timsk1>;
+  using TIFR  = LL::Reg<a::tifr1>;
 
   using OcADdr = digitalPin<6>::DDR;
   using OcBDdr = digitalPin<5>::DDR;

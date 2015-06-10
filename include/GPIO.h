@@ -5,7 +5,7 @@
 
 namespace Arduino{
 
-//
+//Make life easier
 static constexpr bool High = 1;
 static constexpr bool Low = 0;
 static constexpr bool Output = 1;
@@ -13,7 +13,7 @@ static constexpr bool Input = 0;
 
 namespace {
 
-//used to make sure the pins are in the same ports
+//used to make sure the pins are in the same port
 template<unsigned int first, unsigned int... others>
 struct PinChecker{
   static constexpr auto port = uint8_t(digitalPin<first>::port);
@@ -35,6 +35,10 @@ class GPIO {
       "Pins aren't on the same port");
   static constexpr auto size = sizeof...(pins)+1;
 
+  //I'm lazy
+  template<std::size_t pinNum>
+  using pin = digitalPin<pinNum>;
+
   template<typename... T>
   static uint8_t getBitSetValue(bool h, T... t){
     return h<<sizeof...(t) | getBitSetValue(t...);
@@ -43,29 +47,21 @@ class GPIO {
     return 0;
   }
 
-  using port     = digitalPin<pinOne>;
-  using portxReg = LL::Reg< uint8_t(port::port), LL::Access::rw>;
-
-  using portx    = typename portxReg::template Bit<port::bit,
-        digitalPin<pins>::bit...>;
-
-  using ddrxReg  = LL::Reg< uint8_t(port::ddr), LL::Access::rw>;
-
-  using ddrx     = typename ddrxReg::template Bit<port::bit,
-        digitalPin<pins>::bit...>;
-
-  using pinList  = typename Meta::makeList<pinOne, pins...>::Value;
-  static constexpr uint8_t mask = ddrx::mask;
+  using port  = digitalPin<pinOne>;
+  using portx = LL::Reg<port::port>;
+  using ddrx  = LL::Reg< port::ddr>;
 
 public:
   //writes value to all pins
-  AlwayInline static void writeAll(uint8_t value){
-    portx::writeAll(value);
+  AlwayInline static void writeAll(bool value){
+    auto out = LL::BitSet<size>();
+    out.set();
+    portx::template write<port::bit, pin<pins>::bit...>(out);
   }
 
   AlwayInline static void writeValue(uint8_t value){
     auto bits = LL::BitSet<size>(value);
-    portx::write(bits);
+    portx::template write<port::bit, pin<pins>::bit...>(bits);
   }
 
   //write a different value for every pin
@@ -74,34 +70,34 @@ public:
   AlwayInline static void write(H... h){
     static_assert(sizeof...(h) == size, 
         "You need the same number of write values and pins");
-    portx::write(getBitSetValue(h...));
+    portx::template 
+      write<port::bit, pin<pins>::bit...>(getBitSetValue(h...));
   }
 
   template<unsigned n>
   AlwayInline static void write(LL::BitSet<n> a){
-    portx::write(a);
+    portx::template write<port::bit, pin<pins>::bit...>(a);
   }
 
   //set all to output
   AlwayInline static void setAllOutput(){
-    uint8_t currentValue = ddrxReg::read();
-    ddrxReg::wwrite(mask | currentValue);
+    auto out = LL::BitSet<size>();
+    ddrx::template write<pin<pinOne>::bit, pin<pins>::bit...> (out.set());
   }
   
   //set all to input
   AlwayInline static void setAllInput(){
-    uint8_t currentValue = ddrxReg::read();
-    ddrxReg::wwrite(~mask & currentValue);
+    auto out = LL::BitSet<size>();
+    ddrx::template write<pin<pinOne>::bit, pin<pins>::bit...> (out);
   }
 
   //set all to either an input or output
-  //1 is an output
-  //0 is an input
   template<typename... T>
   AlwayInline static void setType(T... values){
     static_assert(sizeof...(values) == size, 
         "You need the same number of write values and pins");
-    ddrx::write(getBitSetValue(values...));
+    ddrx::template 
+      write<pin<pinOne>::bit, pin<pins>::bit...> (getBitSetValue(values...));
   }
   
   //Read from the GPIO
@@ -116,10 +112,8 @@ public:
 template<unsigned int pin>
 class GPIO<pin>{
   using port = digitalPin<pin>; 
-  using portx = LL::Register<LL::Access::rw, uint8_t(port::port), 
-        port::bit, 1>;
-  using ddrx = LL::Register<LL::Access::rw, uint8_t(port::ddr), 
-        port::bit, 1>;
+  using portx = LL::Reg<port::port, 1, port::bit>;
+  using ddrx = LL::Reg<port::ddr, 1, port::bit>;
 public:
   //sets the pin to an input
   AlwayInline static void setInput(){

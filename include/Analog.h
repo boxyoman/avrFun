@@ -39,7 +39,7 @@ class Analog {
   using ADMUX  = LL::Reg<addr::admux>;
   using ADCSRA = LL::Reg<addr::adcsra>;
   using ADCSRB = LL::Reg<addr::adcsrb>;
-  using Data   = LL::Reg<addr::adcl, uint16_t>;
+  using Data   = LL::Reg<addr::adcl, 12>;
   using ADCL   = LL::Reg<addr::adcl>;
   using ADCH   = LL::Reg<addr::adch>;
   using DIDR0  = LL::Reg<addr::didr0>;

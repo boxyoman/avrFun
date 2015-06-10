@@ -30,7 +30,6 @@
 /*****************************************************************************/
 #pragma once
 
-#include <stdint.h>
 #include <limits>
 #include "Device.h"
 #include "templateList.h"
@@ -41,12 +40,35 @@
 
 namespace LL{
 
+namespace regTypes {
+
+constexpr auto minReg = std::numeric_limits<Device::Word>::digits;
+
+constexpr std::size_t getByteCount(std::size_t bitCount){
+  return bitCount/8 + ((bitCount%8>0)? 1 : 0);
+}
+
+constexpr std::size_t getRegSize(std::size_t bitCount){
+  return (bitCount < minReg)? getByteCount(minReg) : getByteCount(bitCount);
+}
+
+template<std::size_t bitCount> struct bitType_;
+template<> struct bitType_<1> { using type = uint8_t; };
+template<> struct bitType_<2> { using type = uint16_t; };
+template<> struct bitType_<4> { using type = uint32_t; };
+template<> struct bitType_<8> { using type = uint64_t; };
+
+template<std::size_t bitCount> 
+using bitType = bitType_<getRegSize(bitCount)>;
+} //end of regTypes
+
+
 template<
   std::size_t addr, 
-  typename T = Device::Word,
+  std::size_t width = std::numeric_limits<Device::Word>::digits, 
+  std::size_t offset = 0,
   typename mut_t = Access::rw, //TODO: use a contrainer 
-  std::size_t width = std::numeric_limits<T>::digits, 
-  std::size_t offset = 0 
+  typename T = typename regTypes::bitType<width>::type
 >
 class Reg {
   using reg_t = volatile T*;
@@ -75,18 +97,18 @@ public:
       mut_t::template write<addr, offset, width, T>(val);
     }else{
       array<std::size_t, sizeof...(bits)> bit = {bits...};
-      auto writeValue = BitSet<size>();
+      auto writeValue = read();
       for (std::size_t i = 0; i < sizeof...(bits); ++i){
         writeValue[bit[i]] = val[i];
       }
-      mut_t::template write<addr, offset, width, T>(writeValue);
+      wwrite(writeValue);
     }
   }
 
   //Call when destructively writing
   template<int... bits>
   AlwayInline static void wwrite(LL::BitSet<width> val){
-    static_assert((sizeof...(bits) > 0 & width == size) | 
+    static_assert((sizeof...(bits) > 0 && width == size) | 
         (sizeof...(bits) == 0), "Error"); 
 
     if(sizeof...(bits) == 0){
@@ -103,6 +125,7 @@ public:
 
   template<std::size_t bit>
   static bool testAndSet(){
+    static_assert(bit<width, "Out of range");
     bool val = mut_t::read()[bit];
     if(val == 1){
       mut_t::write<bit>(1);
