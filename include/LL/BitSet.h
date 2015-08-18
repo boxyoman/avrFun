@@ -12,7 +12,7 @@ namespace LL{
 template<std::size_t N>
 class BitSet{
   //TODO: Replace with dynamic sizing
-  using T = typename bitType<N>::type;
+  using T = bitType<N>;
   static constexpr auto width = std::numeric_limits<T>::digits;
 
   static_assert(N <= width, 
