@@ -10,7 +10,7 @@ project (LEDBlink C CXX ASM)
 unset (CMAKE_C_FLAGS)
 unset (CMAKE_CXX_FLAGS)
 
-set (CMAKE_C_FLAGS   "-mmcu=atmega328p  -nostdlib -flto -fdiagnostics-color=always -Wall -Wl,--gc-sections -ffunction-sections -fdata-sections -DF_CPU=16000000UL")
+set (CMAKE_C_FLAGS   "-mmcu=atmega328p  -flto -fdiagnostics-color=always -Wall -Wl,--gc-sections -ffunction-sections -fdata-sections -DF_CPU=16000000UL")
 set (CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14")
 
 include_directories(include)
@@ -20,7 +20,6 @@ set (SOURCE_DIR "src")
 set (TTYUSB "/dev/tty.usbserial-A5025UZM")
 
 add_executable ( LEDBlink
-  ${SOURCE_DIR}/start.s
   ${SOURCE_DIR}/new.cpp
   ${SOURCE_DIR}/main.cpp
 )
