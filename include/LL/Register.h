@@ -67,7 +67,7 @@ template<
   std::size_t addr, 
   std::size_t width = std::numeric_limits<Device::Word>::digits, 
   std::size_t offset = 0,
-  typename mut_t = Access::rw, //TODO: use a contrainer 
+  typename mut_t = Access::rw, //TODO: use a container 
   typename T = typename regTypes::bitType<width>::type
 >
 class Reg {
