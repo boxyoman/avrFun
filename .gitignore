@@ -2,4 +2,4 @@
 build
 Session.vim
 *.swp
-*.ycm*
+*.ycm*.pyc
