@@ -4,7 +4,7 @@
 #include "avr/addresses.h"
 #include "GPIO.h"
 
-int main(int argc, char *argv[]){
+int main(){
   using namespace Arduino;
 
   USART::setup(9600);

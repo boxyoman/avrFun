@@ -124,7 +124,7 @@ public:
   }
 
   template<std::size_t n>
-  AlwayInline const auto operator + (const BitSet<n>& a) const {
+  AlwayInline auto operator + (const BitSet<n>& a) const {
     return BitSet<N+n>(bits<<n | a.getValue());
   }
 

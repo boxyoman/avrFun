@@ -26,35 +26,33 @@ class USART {
     ubrrn  = 0xc4,
   };//Addresses
 
-  using UDRn   = LL::Register<udrn, 0, 16, LL::Access::wr>;
-  using RXB = LL::Reg< udrn+1, LL::Access::rw>;
-  using TXB = LL::Reg< udrn, LL::Access::rw>;
+  using UDRn   = LL::Reg<udrn, 0, 16>;
 
-  using UCSRnA = LL::Reg< ucsrna, LL::Access::wr>;
-  using RXCn   = UCSRnA::template Bit<7>;
-  using TXCn   = UCSRnA::template Bit<6>;
-  using UDREn  = UCSRnA::template Bit<5>;
-  using FEn    = UCSRnA::template Bit<4>;
-  using DORn   = UCSRnA::template Bit<3>;
-  using UPEn   = UCSRnA::template Bit<2>;
-  using U2Xn   = UCSRnA::template Bit<1>;
-  using MPCMn  = UCSRnA::template Bit<0>;
+  using UCSRnA = LL::Reg<ucsrna>;
+  //using RXCn   = UCSRnA::template Bit<7>;
+  //using TXCn   = UCSRnA::template Bit<6>;
+  //using UDREn  = UCSRnA::template Bit<5>;
+  //using FEn    = UCSRnA::template Bit<4>;
+  //using DORn   = UCSRnA::template Bit<3>;
+  //using UPEn   = UCSRnA::template Bit<2>;
+  //using U2Xn   = UCSRnA::template Bit<1>;
+  //using MPCMn  = UCSRnA::template Bit<0>;
 
-  using UCSRnB = LL::Reg< ucsrnb, LL::Access::wr>;
-  using RXENn  = UCSRnB::template Bit<4>;
-  using TXENn  = UCSRnB::template Bit<3>;
-  using UCSZn2 = UCSRnB::template Bit<2>;
-  using RXB8n  = UCSRnB::template Bit<1>;
-  using TXB8n  = UCSRnB::template Bit<0>;
+  using UCSRnB = LL::Reg<ucsrnb>;
+  //using RXENn  = UCSRnB::template Bit<4>;
+  //using TXENn  = UCSRnB::template Bit<3>;
+  //using UCSZn2 = UCSRnB::template Bit<2>;
+  //using RXB8n  = UCSRnB::template Bit<1>;
+  //using TXB8n  = UCSRnB::template Bit<0>;
 
-  using UCSRnC = LL::Reg< ucsrnc, LL::Access::wr>;
-  using UMSELn = UCSRnC::template Bit<7,6>;
-  using UPMn   = UCSRnC::template Bit<5,4>;
-  using USBSn  = UCSRnC::template Bit<3>;
-  using UCSZn  = UCSRnC::template Bit<2,1>;
-  using UCPOLn = UCSRnC::template Bit<0>;
+  using UCSRnC = LL::Reg<ucsrnc>;
+  //using UMSELn = UCSRnC::template Bit<7,6>;
+  //using UPMn   = UCSRnC::template Bit<5,4>;
+  //using USBSn  = UCSRnC::template Bit<3>;
+  //using UCSZn  = UCSRnC::template Bit<2,1>;
+  //using UCPOLn = UCSRnC::template Bit<0>;
 
-  using UBRR = LL::Register<LL::Access::wr, ubrrn, 0, 12, uint16_t>;
+  using UBRR = LL::Reg<ubrrn, 0, 12>;
 
   static constexpr uint16_t baudValue(uint16_t BUAD){
     return Device::clk/16/BUAD-1;
@@ -69,13 +67,13 @@ public:
     UBRR::write(baudValue(buad));
     
     //Enable tx and rx
-    UCSRnB::template Bit<4,3>::write(0b11);
+    UCSRnB::write<4,3>(0b11);
     //No parity
-    UMSELn::write(0);
+    UCSRnC::write<7,6>(0);
 
     //Set the size
-    UCSZn::write(ucsz);
-    UCSZn2::write(ucsz>>2);
+    UCSRnC::write<2,1>(ucsz);
+    UCSRnB::write<2>(ucsz>>2);
   } 
 
   NeverInline static void write(const char* str){
@@ -97,7 +95,7 @@ public:
   }
 
   static void put(unsigned char c){
-    while(!UDREn::read()[0]);
+    while(!UCSRnA::read()[5]);
     UDRn::write(c);
   }
 };
