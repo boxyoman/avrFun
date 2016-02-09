@@ -58,13 +58,9 @@ struct Fixed {
 
   //multiple two fixed point numbers
   Fixed<type, factor*2> operator * (Fixed<type, factor> rhs){
-    using rType = Fixed<type, factor*2>;
-    auto result = rType(0);
-    result.value = static_cast<typename rType::type>(value) * 
-      static_cast<typename rType::type>(rhs.value);
-    return result;
+    return this.mult<type, factor>(rhs);
   }
 
-}; //End of Fix
+}; //End of Fixed
 
 }//end of LL

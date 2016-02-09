@@ -1,16 +1,22 @@
 #include "LL/Register.h"
 #include "Analog.h"
-#include "LL/FixedPoint.h"
+#include "USART.h"
 #include "avr/addresses.h"
 #include "GPIO.h"
 
 int main(int argc, char *argv[]){
   using namespace Arduino;
-  GPIO<13, 8>::writeValue(0b11);
-  GPIO<13>::write(0);
 
-  //using portb = LL::Reg<avr::addr::portb, 1, 5>;
-  //auto a = portb::read();
-  //portb::wwrite(a);
+  USART::setup(9600);
+
+  Analog::init(true, true);
+  Analog::setToADC<0>();
+  Analog::start();
+
+  while(1){
+    USART::writeNum(Analog::read8<0>());
+    USART::write("\r\n");
+  }
+
   while(1);
 }

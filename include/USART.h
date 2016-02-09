@@ -26,7 +26,7 @@ class USART {
     ubrrn  = 0xc4,
   };//Addresses
 
-  using UDRn   = LL::Register<LL::Access::wr, udrn, 0, 16, uint16_t>;
+  using UDRn   = LL::Register<udrn, 0, 16, LL::Access::wr>;
   using RXB = LL::Reg< udrn+1, LL::Access::rw>;
   using TXB = LL::Reg< udrn, LL::Access::rw>;
 
