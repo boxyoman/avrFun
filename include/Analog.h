@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LL/Register.h"
+#include "LL/FixedPoint.h"
 #include "PowerManager.h"
 #include "Pin.h"
 #include "LL/RegSet.h"
@@ -105,7 +106,7 @@ public:
   //Read the output
   //Use when left align is false
   template<unsigned pin>
-  AlwayInline static uint16_t read(){
+  AlwayInline static LL::Fixed<uint16_t, 10> read(){
     constexpr auto actPin = analogPin<pin>::muxValue;
     ADMUX::write<3,2,1,0>(LL::BitSet<4>(actPin));
     while(!ADCSRA::testAndSet<bit::adif>()); 

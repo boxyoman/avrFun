@@ -1,4 +1,6 @@
 #include "LL/Register.h"
+#include "Analog.h"
+#include "LL/FixedPoint.h"
 #include "avr/addresses.h"
 #include "GPIO.h"
 
