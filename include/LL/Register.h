@@ -126,9 +126,9 @@ public:
   template<std::size_t bit>
   static bool testAndSet(){
     static_assert(bit<width, "Out of range");
-    bool val = mut_t::read()[bit];
+    bool val = mut_t::template read<addr, offset, width, T>()[bit];
     if(val == 1){
-      mut_t::write<bit>(1);
+      mut_t::template write<addr, bit, 1, Device::Word>(1);
     }
     return val;
   }

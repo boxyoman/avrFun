@@ -26,7 +26,7 @@ class USART {
     ubrrn  = 0xc4,
   };//Addresses
 
-  using UDRn   = LL::Reg<udrn, 0, 16>;
+  using UDRn   = LL::Reg<udrn, 16>;
 
   using UCSRnA = LL::Reg<ucsrna>;
   //using RXCn   = UCSRnA::template Bit<7>;
@@ -52,7 +52,7 @@ class USART {
   //using UCSZn  = UCSRnC::template Bit<2,1>;
   //using UCPOLn = UCSRnC::template Bit<0>;
 
-  using UBRR = LL::Reg<ubrrn, 0, 12>;
+  using UBRR = LL::Reg<ubrrn, 12>;
 
   static constexpr uint16_t baudValue(uint16_t BUAD){
     return Device::clk/16/BUAD-1;
@@ -93,6 +93,7 @@ public:
       number = number % highNum;
     }while((highNum /= 10));
   }
+
 
   static void put(unsigned char c){
     while(!UCSRnA::read()[5]);

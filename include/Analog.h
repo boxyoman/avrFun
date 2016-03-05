@@ -93,14 +93,18 @@ public:
 
   //Read the output 
   //use when left align is true
-  template<unsigned pin>
-  AlwayInline static uint8_t read8(){
+  template<unsigned pin, typename T = uint8_t>
+  AlwayInline static LL::Fixed<T, 8> read8(){
     constexpr auto actPin = analogPin<pin>::muxValue;
     ADMUX::write<3,2,1,0>(LL::BitSet<4>(actPin));
-    while(!ADCSRA::testAndSet<bit::adif>()); 
     //wait for conversion to be done
+    while(!ADCSRA::testAndSet<bit::adif>()); 
+    //Convert to FixedPoint
+    uint8_t value = ADCH::read().getValue();
+    auto result = LL::Fixed<T, 8>();
+    result.value = value;
     
-    return ADCH::read().getValue();
+    return result;
   }
 
   //Read the output

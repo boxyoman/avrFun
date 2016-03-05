@@ -17,7 +17,7 @@ include_directories(include)
 include_directories(STL)
 
 set (SOURCE_DIR "src")
-set (TTYUSB "/dev/tty.usbserial-A5025UZM")
+set (TTYUSB "/dev/ttyUSB0")
 
 add_executable ( LEDBlink
   ${SOURCE_DIR}/new.cpp
