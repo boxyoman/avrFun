@@ -35,9 +35,8 @@ struct Fixed {
   static constexpr float pow = uint64_t(1)<<bitnum;
 
   //Convert from floating point to fixed point
-  Fixed (float num) : value(num*pow) { }
-  Fixed () : value(0) { }
-  Fixed (int num) : value(num) { }
+  constexpr Fixed (float num) : value(num*pow) { }
+  constexpr Fixed () : value(0) { }
 
   //template<std::size_t s, std::size_t f>
   //explicit Fixed (Fixed<s,f> num) : 
@@ -86,7 +85,7 @@ struct Fixed {
     //Convert Fixed<type*2, factor*2> to Fixed<type, factor>
     auto multipleResult = mult(rhs);
     auto result = Fixed<type, factor>();
-    result.value = multipleResult.value>>2;
+    result.value = multipleResult.value>>factor;
     return result;
   }
 

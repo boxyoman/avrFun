@@ -16,12 +16,12 @@ int main(){
   auto value2 = LL::Fixed<uint16_t, 8>(2.0f);
   auto value4 = LL::Fixed<uint16_t, 8>(2.0f);
 
-  while(1){
+  //while(1){
     //auto test = Analog::read8<0, uint16_t>();
-    auto test = value4.mult(value2).value;
+    auto test = (value4*value2).value;
     USART::writeNum(test);
     USART::write("\r\n");
-  }
+  //}
 
   while(1);
 }
