@@ -1,8 +1,82 @@
 #include "LL/Register.h"
+#include "LL/LoopSet.h"
+#include "LL/Complex.h"
 #include "Analog.h"
 #include "USART.h"
 #include "avr/addresses.h"
 #include "GPIO.h"
+
+LL::Fixed<uint16_t, 8> cos[32] = {
+  1.0, 
+  0.70710678118654757, 
+  0, 
+  -0.70710678118654746, 
+  -1.0, 
+  -0.70710678118654768, 
+  0,
+  0.70710678118654735,
+  1.0, 
+  0.70710678118654757, 
+  0, 
+  -0.70710678118654746, 
+  -1.0, 
+  -0.70710678118654768, 
+  0,
+  0.70710678118654735,
+  1.0, 
+  0.70710678118654757, 
+  0, 
+  -0.70710678118654746, 
+  -1.0, 
+  -0.70710678118654768, 
+  0,
+  0.70710678118654735,
+  1.0, 
+  0.70710678118654757, 
+  0, 
+  -0.70710678118654746, 
+  -1.0, 
+  -0.70710678118654768, 
+  0,
+  0.70710678118654735
+};
+
+LL::Fixed<uint16_t, 8> sin[32] = {
+  0, 
+  -0.70710678118654746, 
+  -1.0, 
+  -0.70710678118654768, 
+  0,
+  0.70710678118654735,
+  1.0, 
+  0.70710678118654735,
+  0, 
+  -0.70710678118654746, 
+  -1.0, 
+  -0.70710678118654768, 
+  0,
+  0.70710678118654735,
+  1.0, 
+  0.70710678118654735,
+  0, 
+  -0.70710678118654746, 
+  -1.0, 
+  -0.70710678118654768, 
+  0,
+  0.70710678118654735,
+  1.0, 
+  0.70710678118654735,
+  0, 
+  -0.70710678118654746, 
+  -1.0, 
+  -0.70710678118654768, 
+  0,
+  0.70710678118654735,
+  1.0, 
+  0.70710678118654735
+};
+
+
 
 int main(){
   using namespace Arduino;
@@ -12,16 +86,23 @@ int main(){
   Analog::init(true, true);
   Analog::setToADC<0>();
   Analog::start();
+  //
+  using Fixed16 = LL::Fixed<uint16_t, 8>;
+  LL::LoopSet<Fixed16, 8> previous;
 
-  auto value2 = LL::Fixed<uint16_t, 8>(2.0f);
-  auto value4 = LL::Fixed<uint16_t, 8>(2.0f);
+  while(1){
+    auto in = Analog::read8<0, uint16_t>();
+    previous.push(in);
 
-  //while(1){
-    //auto test = Analog::read8<0, uint16_t>();
-    auto test = (value4*value2).value;
-    USART::writeNum(test);
+    LL::Complex<Fixed16> out[4];
+    for(int k = 0; k < 4; ++k){
+      for (int n = 0; n < 8; ++n){
+        out[k] += LL::Complex<Fixed16>(cos[k*n], sin[k*n]) * previous[n];
+      }
+    }
+    USART::writeNum(in.value);
     USART::write("\r\n");
-  //}
+  }
 
   while(1);
 }

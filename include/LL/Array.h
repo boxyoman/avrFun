@@ -7,7 +7,7 @@ namespace LL{
 template<class T, std::size_t N>
 struct array{
   T _data[N];
-  const T* date() const noexcept {
+  const T* data() const noexcept {
     return _data;
   }
   constexpr T const& operator [] (std::size_t i) const {
