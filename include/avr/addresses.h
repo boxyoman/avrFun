@@ -4,7 +4,7 @@ struct addr{
   enum{
     ddrb  = 0x24,
     portb = 0x25,
-    ddrd  = 0x2b,
+    ddrd  = 0x2a,
     portd = 0x2b
   }; //digital pins
   enum{

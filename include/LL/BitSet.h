@@ -64,6 +64,11 @@ public:
     return *this;
   }
 
+  AlwayInline auto clear(){
+    bits = ~mask;
+    return *this;
+  }
+
   AlwayInline auto operator[](std::size_t i){
     return Reference(bits, i);
   }

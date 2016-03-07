@@ -26,6 +26,10 @@ struct Complex{
     return *this;
   }
 
+  T abs2(){
+    return this->real*this->real + this->imag*this->imag;
+  }
+
 };
 }
 

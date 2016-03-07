@@ -39,6 +39,13 @@ public:
   AlwayInline static void forceB(){
     TCCRA::write<b::focb>(1);
   }
+  AlwayInline static void turnOnIntrA(){
+    TIMSK::write<1>(1);
+  }
+
+  AlwayInline static void turnOnIntr(){
+    TIMSK::write<0>(1);
+  }
 
   AlwayInline static void turnOffIntr(){
     TIMSK::write(0);

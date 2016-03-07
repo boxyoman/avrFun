@@ -55,7 +55,11 @@ public:
   //writes value to all pins
   AlwayInline static void writeAll(bool value){
     auto out = LL::BitSet<size>();
-    out.set();
+    if(value){
+      out.set();
+    }else{
+      out.clear();
+    }
     portx::template write<port::bit, pin<pins>::bit...>(out);
   }
 
