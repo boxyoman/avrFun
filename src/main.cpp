@@ -101,23 +101,26 @@ int main(){
 
   sei();
 
-  Fixed16 previous[8];
-  //For around 1V
+  Fixed16 data[8];
+
+  //Offset For around 1V
   Fixed16 offset;
   offset.value = 51;
 
   while(1){
     cli();
+    //Get data
     for (int i = 0; i < 8; ++i){
       auto in = Analog::read8<0, int16_t>() - offset;
-      previous[i] = in;
+      data[i] = in;
     }
     sei();
 
+    //Do the DFT
     for(int k = 0; k < 4; ++k){
       out[k] = out[k] * 0;
       for (int n = 0; n < 8; ++n){
-        out[k] += LL::Complex<Fixed16>(cos[k*n], sin[k*n]) * previous[n];
+        out[k] += LL::Complex<Fixed16>(cos[k*n], sin[k*n]) * data[n];
       }
     }
 
