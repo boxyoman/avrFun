@@ -8,7 +8,8 @@
 #include "GPIO.h"
 #include <avr/interrupt.h>
 
-LL::Fixed<uint16_t, 8> cos[32] = {
+using Fixed16 = LL::Fixed<int16_t, 8>;
+Fixed16 cos[32] = {
   1.0, 
   0.70710678118654757, 
   0, 
@@ -43,7 +44,7 @@ LL::Fixed<uint16_t, 8> cos[32] = {
   0.70710678118654735
 };
 
-LL::Fixed<uint16_t, 8> sin[32] = {
+Fixed16 sin[32] = {
   0, 
   -0.70710678118654746, 
   -1.0, 
@@ -78,7 +79,6 @@ LL::Fixed<uint16_t, 8> sin[32] = {
   0.70710678118654735
 };
 
-using Fixed16 = LL::Fixed<uint16_t, 8>;
 LL::Complex<Fixed16> out[4];
 
 int main(){
@@ -102,19 +102,24 @@ int main(){
   sei();
 
   Fixed16 previous[8];
+  //For around 1V
+  Fixed16 offset;
+  offset.value = 51;
 
   while(1){
+    cli();
     for (int i = 0; i < 8; ++i){
-      auto in = Analog::read8<0, uint16_t>();
+      auto in = Analog::read8<0, int16_t>() - offset;
       previous[i] = in;
     }
+    sei();
 
     for(int k = 0; k < 4; ++k){
+      out[k] = out[k] * 0;
       for (int n = 0; n < 8; ++n){
         out[k] += LL::Complex<Fixed16>(cos[k*n], sin[k*n]) * previous[n];
       }
     }
-
 
   }
 
@@ -125,7 +130,22 @@ int main(){
 ISR(TIMER0_COMPA_vect) {
   using namespace Arduino;
   static uint8_t currentCol = 0;
-  GPIO<8,9,10,11>::writeValue(out[currentCol].abs2().value>>13);
+  LL::BitSet<4> output;
+  auto dftValue = out[currentCol].abs2().value;
+  if(dftValue > 10){
+    output[0] = 1;
+  }
+  if(dftValue > 20){
+    output[1] = 1;
+  }
+  if(dftValue > 40){
+    output[2] = 1;
+  }
+  if(dftValue > 100){
+    output[3] = 1;
+  }
+  GPIO<8,9,10,11>::write(output);
+
   if(currentCol == 0){
     GPIO<2, 3, 4, 5>::write(0,1,1,1);
     currentCol ++;

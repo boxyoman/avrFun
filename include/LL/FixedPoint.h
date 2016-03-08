@@ -28,6 +28,9 @@ namespace LL{
 template<typename T, std::size_t factor>
 struct Fixed {
   //The value of the FixedPoint
+  static constexpr bool isSigned = std::numeric_limits<T>::is_signed;
+  static constexpr auto bitSize = std::numeric_limits<T>::digits;
+   
   using type = T;
   type value;
 
@@ -59,6 +62,13 @@ struct Fixed {
     result.value = value + rhs.value;
     return result;
   }
+  
+  template<typename rhsType>
+  Fixed<rhsType, factor> operator - (Fixed<rhsType, factor> rhs){
+    auto result = Fixed<rhsType, factor>(0);
+    result.value = value - rhs.value;
+    return result;
+  }
 
   template<typename rhsType>
   Fixed<type, factor> operator += (Fixed<rhsType, factor> rhs){
@@ -70,8 +80,7 @@ struct Fixed {
   template<typename rhsType>
   auto mult(Fixed<rhsType, factor> rhs){
     //Set up the return type
-    constexpr auto returnBits = std::numeric_limits<rhsType>::digits*2;
-    using returnIntType = LL::bitType<returnBits>;
+    using returnIntType = LL::bitType<bitSize*2, isSigned>;
     using rType = Fixed<returnIntType, factor*2>;
 
     auto result = rType(0);
